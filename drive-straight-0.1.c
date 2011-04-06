@@ -1,7 +1,8 @@
-#include <stdlib>
+#include <stdlib.h>
+#include <stdio.h>
 
 int main()
 {
-	/*code here.*/ 
+	printf("\nWorks!\n");
 }
 
