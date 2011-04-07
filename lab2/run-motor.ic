@@ -2,7 +2,9 @@
 
 int main ()
 {
+	//don't do anything until the start button gets pressed
 	while(!start_button())
 	{}
+	//then run the motor indefinitely once it's been pressed
 	motor(MOTOR_PORT, 100);
 }

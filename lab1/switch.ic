@@ -1,7 +1,7 @@
 #define MOTOR_PORT 1
 #define SWITCH_PORT 8
 
-// Run the motor iff the argument is nonzero
+// Run the motor if the argument is nonzero
 void run_motor(int run) {
     if(run)
       {
@@ -11,14 +11,17 @@ void run_motor(int run) {
       } 
     else
       {
-        //turn off the motor
+    	//turn off the motor
       motor(MOTOR_PORT, 0);
       printf("Motor stops");
       }
 }
 
+//-------------------------------------------------------
 //main entry point
-int main() {
+//-------------------------------------------------------
+int main() 
+{
     //Save the result of the switch
     int switch_status;
     
@@ -27,13 +30,13 @@ int main() {
     {
         //gets whatever the current status of the switch is (1 or 0)
         switch_status = digital(SWITCH_PORT);
-        //will tell us what the switch is doing (will get erased shortly by above message)
+        //will tell us what the switch is doing
         if(switch_status)
-          printf("\nSwitch closed   ");
+          printf("\nSwitch closed ");
         else
-          printf("\nSwitch open     ");
+          printf("\nSwitch open   ");
         
-        //Negate the switch_status
+        //Negate the switch_status and pass it ro run_motor
         run_motor(!switch_status);
         //wait a tenth of a second and update the whole thing
         sleep(.1);

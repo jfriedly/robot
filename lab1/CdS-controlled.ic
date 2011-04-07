@@ -2,8 +2,13 @@
 #define MOTOR_PORT 1
 #define SWITCH_PORT 8
 
+//----------------------------------------------
+//Code below commented out because it was used in previous versions of this 
+//program but only got in the way in the CdS cell version
+//----------------------------------------------
+
 /*
-// Run the motor iff the argument is nonzero
+// Run the motor if the argument is nonzero
 void run_motor(int run) {
     if(run)
      {
@@ -20,7 +25,11 @@ void run_motor(int run) {
 }
 */
 
+
+//------------------------------------------------
 //main entry point
+//------------------------------------------------
+
 int main() {
     //Save the result of the switch
     int switch_status, current;
@@ -33,23 +42,32 @@ int main() {
     {
        //gets whatever the current status of the switch is (1 or 0)
        switch_status = digital(SWITCH_PORT);
-       //will tell us what the switch is doing (will get erased shortly by above message)
+       //will tell us what the switch is doing
        if(switch_status)
        {  
            printf("\nS=C M=off ");
            motor(MOTOR_PORT, 0);
        }
+
+	   //assuming the switch isn't pressed, get a reading from the CdS cell to 
+	   //figure out how fast/what direction the motor should go
        else
        {
            printf("\nS=O M=on ");
-           //BEGIN CdS cell code
-           //get the current value of the 
+           //-----------------BEGIN CdS cell code-------------------
+           //get the current value from the CdS cell and print it to the screen 
            current = analog(CDS_PORT);
            printf("CdS=%d", current);
+
+		   //subtracting 25 will make the motor spin slower if the light level
+		   //is low and even backwards if it's very low (<25).  Multiplying by 
+		   //three just amplifies everything so it's easier to see what's going
+		   //on.
            motor(MOTOR_PORT, (current-25)*3);
-           //END CdS cell code
+           //------------------END CdS cell code--------------------
        }
-        
+       
+		//make the whole process repeat every tenth of a second
        sleep(.1);
     }
 }

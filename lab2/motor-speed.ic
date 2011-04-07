@@ -1,3 +1,7 @@
+//------------------------------------------------------
+//This code was given to us by the FEH instructors.  We downloaded it from Carmen and it ran successfully. --Joel Friedly
+//------------------------------------------------------
+
 #use fencdr2.icb
 
 void main()
