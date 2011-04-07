@@ -1,18 +1,22 @@
 #define MOTOR_PORT 1
 
 int main() {
+    //Run the motor forward for 2 seconds
     printf("\nMotor forward");
     motor(MOTOR_PORT, 100);
     sleep(2.);
     
+    //Stop the motor for 2 seconds
     printf("\nMotor stopped");
     motor(MOTOR_PORT, 0);
     sleep(2.);
     
+    //Run the motor backwards for 2 seconds
     printf("\nMotor backward");
     motor(MOTOR_PORT, -100);
     sleep(2.);
     
+    //Turn off the motor
     printf("\nDone!");
     motor(MOTOR_PORT, 0);
 }
