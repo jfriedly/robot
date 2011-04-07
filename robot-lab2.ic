@@ -1,8 +1,0 @@
-#define MOTOR_PORT 8
-
-int main ()
-{
-	while(!start_button())
-	{}
-	motor(MOTOR_PORT, 100);
-}
