@@ -1,0 +1,51 @@
+#use fencdr2.icb
+
+void main()
+{
+int a;
+ float b;
+ float begin;
+ float end;
+ float Time;
+ int x;
+ int y;
+ int deltacount;
+ float RPM;
+
+/* Tell the user to push start when ready. */
+/* We will start motor and wait for it to  */
+/* reach a steady-state speed.   */
+ 
+printf ("Press start when you are ready\n"); 
+while (start_button()==0);     
+motor (1,100);      
+sleep (1.0);
+
+/*   Now start the timing loop. */
+/*   We will stop when the start button is  */
+/*   held down for a second.    */
+
+
+reset_system_time();
+begin=seconds(); 
+encoder2_counts=0;
+
+while(stop_button()!=1)
+{
+ x=encoder2_counts; 
+ sleep(1.0); 
+ y=encoder2_counts; 
+ deltacount=y-x; 
+ RPM=((float)deltacount/16.)*60.; 
+ printf("RPM=%f\n",RPM);
+}
+
+end=seconds();
+a=encoder2_counts;  
+ao();
+Time=end-begin; 
+b=(float) a / 16.; 
+RPM = b / Time * 60.; 
+printf("t=%f r=%f RPM=%f\n",Time,b,RPM);
+
+}

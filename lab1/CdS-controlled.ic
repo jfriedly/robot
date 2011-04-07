@@ -1,0 +1,55 @@
+#define CDS_PORT 4 
+#define MOTOR_PORT 1
+#define SWITCH_PORT 8
+
+/*
+// Run the motor iff the argument is nonzero
+void run_motor(int run) {
+    if(run)
+     {
+     //turn on the motor
+     motor(MOTOR_PORT, 100);
+     printf("M=on ");
+     }
+    else
+     {
+       //turn off the motor
+     motor(MOTOR_PORT, 0);
+     printf("M=off ");
+     }
+}
+*/
+
+//main entry point
+int main() {
+    //Save the result of the switch
+    int switch_status, current;
+    
+    //will wait until the start button gets pressed
+    while(!start_button()) {}
+    
+    //will execute indefinitely until the stop button is pressed
+    while(!stop_button())
+    {
+       //gets whatever the current status of the switch is (1 or 0)
+       switch_status = digital(SWITCH_PORT);
+       //will tell us what the switch is doing (will get erased shortly by above message)
+       if(switch_status)
+       {  
+           printf("\nS=C M=off ");
+           motor(MOTOR_PORT, 0);
+       }
+       else
+       {
+           printf("\nS=O M=on ");
+           //BEGIN CdS cell code
+           //get the current value of the 
+           current = analog(CDS_PORT);
+           printf("CdS=%d", current);
+           motor(MOTOR_PORT, (current-25)*3);
+           //END CdS cell code
+       }
+        
+       sleep(.1);
+    }
+}
