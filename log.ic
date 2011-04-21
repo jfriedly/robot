@@ -71,8 +71,8 @@ void clear_log_buffer(void) {
  */
 void add_to_log_buffer(int b) {
     if(log_buffer[log_buffer_ins] >= EV_EXTENDED)
-        //extended event.  Overwrite the argument byte with EV_NULL.
-        log_buffer[(log_buffer_ins + 1) % LOG_BUFFER_SZ] = EV_NULL;
+      //extended event.  Overwrite the argument byte with EV_NULL.
+      log_buffer[(log_buffer_ins + 1) % LOG_BUFFER_SZ] = EV_NULL;
     log_buffer[log_buffer_ins] = b;
     log_buffer_ins = (log_buffer_ins + 1) % LOG_BUFFER_SZ;
 }

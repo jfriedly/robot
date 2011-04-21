@@ -1,47 +1,65 @@
-
 #use "exp_servo_lib.ic"
-#use "exp_servo_calibrate.ic"
 #use "gps_module.icb"
 #use "gps_module.ic"
 
-
+//Servo port
 #define SERVO_NUMBER 2
-#define SERVO_MIN 274
-#define SERVO_MAX 4235
+//Servo calibration data
+#define SERVO_MIN 490
+#define SERVO_MAX 4294
+
+//Adjust the servo by BIG_STEP degrees when the GPS is far from 90 degrees
+#define BIG_STEP 8
 
 void main() {
+    //Keep track of the current servo angle
     int ang = 90;
     
+    //Enter servo calibration numbers and turn it on
     exp_servo_min[SERVO_NUMBER] = SERVO_MIN;
     exp_servo_max[SERVO_NUMBER] = SERVO_MAX;
     exp_servo_enable();
     
+    //Initialize the GPS
     gps_initialize_knob();
     gps_enable();
     
-    for(;;) {
+    //Stop when the user presses STOP
+    while(!stop_button()) {
+        //Block until we get GPS data
         while(!gps_get_data())
           ;
-        printf("\nGPS Data: %d", gps_heading);
+
+	//Print out GPS data for debugging purposes.  Print spaces for alignment
+        printf("GPS Data: %d", gps_heading);
         if(gps_heading < 100)  printf(" ");
         if(gps_heading < 10)   printf(" ");
         printf("   ");
+
+	//Turn the servo so that the GPS goes toward 90 degrees
         if(gps_heading > 90)  {
-            if(gps_heading > 90+16)
-                  ang -= 16;
-                else
-                  --ang;
-         
-        } else if(gps_heading < 90) { 
-            if(gps_heading < 90-16)
-              ang += 16;
+	    //If we're more than BIG_STEP degrees away, move BIG_STEP degrees toward 90
+            if(gps_heading > 90+BIG_STEP)
+              ang -= BIG_STEP;
+	    //Otherwise only one degree at a time
             else
-            ++ang;
+              --ang;
+            
+        } else if(gps_heading < 90) { 
+	    //do the same thing, but in the opposite direction
+	    if(gps_heading < 90-BIG_STEP)
+              ang += BIG_STEP;
+            else
+              ++ang;
         }
-        printf("Servo ang:  %d", ang);
+
+	//Clamp the angle to [0,180) degrees
         while(ang < 0)
           ang += 180;
         ang = ang % 180;
+
+	//Display the servo angle and move the servo
+	printf("Servo ang: %d\n", ang);
         exp_servo_deg(SERVO_NUMBER, ang);
     }
 }
