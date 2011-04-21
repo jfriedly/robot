@@ -1,0 +1,33 @@
+//Ryan Hartlage 2008-2010
+void calibration_helper()
+{
+    while(!start_button())
+      {
+        servo_pulse_wavetime = (int)((float)knob()*(5000./255.)); 
+        sleep(0.1);
+    }
+}
+
+void servo_calibrate()
+{
+    int temp;
+    
+    printf("Min\n");
+    calibration_helper();
+    servo_min = (int)((float)knob()*(5000./255.));
+    
+    sleep(0.75);
+    
+    printf("Max\n");
+    calibration_helper();
+    servo_max = (int)((float)knob()*(5000./255.));
+    
+    if(servo_min > servo_max)
+      {
+        temp = servo_min;
+        servo_min = servo_max;
+        servo_max = temp;
+    }
+    
+    printf("Min: %d Max: %d\n", servo_min, servo_max);
+}

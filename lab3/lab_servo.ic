@@ -1,0 +1,10 @@
+#use "exp_servo_lib.ic"
+#use "exp_servo_calibrate.ic"
+
+#define SERVO_NUMBER 2
+
+void main() {
+    exp_servo_enable();
+    exp_servo_calibrate(SERVO_NUMBER);
+    exp_servo_disable();
+}

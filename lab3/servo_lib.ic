@@ -1,0 +1,34 @@
+//Ryan Hartlage, Pat Wensing, Kyle Johnson 2008-2010
+int servo_min;
+int servo_max;
+
+void servo_dig9_enable()
+{
+    asm_servo_on(0);
+}
+
+void servo_dig9_disable()
+{
+    asm_servo_off(0);
+}
+
+int servo_deg(int degree)
+{
+    int pulse_width;
+    
+    if(degree < 0)
+    {
+    	degree = 0;
+    }
+    if(degree > 180)
+    {
+    	degree = 180;
+   	}
+   	
+    pulse_width = (int)((float)degree*(((float)servo_max - (float)servo_min)/180.) + (float)servo_min);
+    
+    servo_pulse_wavetime = pulse_width;  
+    
+    return pulse_width;
+}
+

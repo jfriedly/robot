@@ -1,0 +1,73 @@
+//Ryan Hartlage, Kyle Johnson 2008-2010
+void calibration_helper(int which_servo)
+{
+    while(!start_button())
+      {
+        if(which_servo==0)
+          servo0 = (int)((float)knob()*(5000./255.));
+        if(which_servo==1)
+          servo1 = (int)((float)knob()*(5000./255.));
+        if(which_servo==2)
+          servo2 = (int)((float)knob()*(5000./255.));
+        if(which_servo==3)
+          servo3 = (int)((float)knob()*(5000./255.));
+        if(which_servo==4)
+          servo4 = (int)((float)knob()*(5000./255.));
+        if(which_servo==5)
+          servo5 = (int)((float)knob()*(5000./255.)); 
+        sleep(0.1);
+    }
+}
+
+void exp_servo_calibrate(int which_servo)
+{
+    int temp;
+    
+    printf("Min\n");
+    calibration_helper(which_servo);
+    exp_servo_min[which_servo] = (int)((float)knob()*(5000./255.));
+    
+    sleep(0.75);
+    
+    printf("Max\n");
+    calibration_helper(which_servo);
+    exp_servo_max[which_servo] = (int)((float)knob()*(5000./255.));
+    
+    if(exp_servo_min[which_servo] > exp_servo_max[which_servo])
+      {
+        temp = exp_servo_min[which_servo];
+        exp_servo_min[which_servo] = exp_servo_max[which_servo];
+        exp_servo_max[which_servo] = temp;
+    }
+    
+    printf("Min: %d Max: %d\n", exp_servo_min[which_servo], exp_servo_max[which_servo]);
+}
+
+void exp_servo_motor_calibrate(int which_servo)
+{   
+    printf("Center w/ Knob  Press Start\n");
+    
+    while(!start_button())
+    {
+        if(which_servo==0)
+          servo0 = 2100+(3*knob()-255);
+        if(which_servo==1)
+          servo1 = 2100+(3*knob()-255);
+        if(which_servo==2)
+          servo2 = 2100+(3*knob()-255);
+        if(which_servo==3)
+          servo3 = 2100+(3*knob()-255);
+        if(which_servo==4)
+          servo4 = 2100+(3*knob()-255);
+        if(which_servo==5)
+          servo5 = 2100+(3*knob()-255); 
+        
+        sleep(.1); 
+    }
+    
+    printf("%d\n",2100+(3*knob()-255));   
+    
+    exp_servo_mid[which_servo] = 2100+(3*knob()-255);
+}
+               
+               

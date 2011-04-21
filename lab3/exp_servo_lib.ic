@@ -1,0 +1,76 @@
+//Ryan Hartlage, Pat Wensing, Kyle Johnson 2008-2010
+int exp_servo_min[6];
+int exp_servo_max[6];
+int exp_servo_mid[6];
+
+void exp_servo_enable()
+{
+    init_expbd_servos(1);
+}
+
+void exp_servo_disable()
+{
+    init_expbd_servos(0);
+}
+
+int exp_servo_deg(int which_servo, int degree)
+{
+    int pulse_width;
+    
+    if(degree < 0)
+    {
+    	degree = 0;
+    }
+    if(degree > 180)
+    {
+    	degree = 180;
+   	}
+   	
+    pulse_width = (int)((float)degree*(((float)exp_servo_max[which_servo]-(float)exp_servo_min[which_servo])/180.)+(float)exp_servo_min[which_servo]);
+    
+    if(which_servo==0)
+      servo0 = pulse_width;
+    if(which_servo==1)
+      servo1 = pulse_width;
+    if(which_servo==2)
+      servo2 = pulse_width;
+    if(which_servo==3)
+      servo3 = pulse_width;
+    if(which_servo==4)
+      servo4 = pulse_width;
+    if(which_servo==5)
+      servo5 = pulse_width;  
+    
+    return pulse_width;
+}
+
+int exp_servo_motor(int which_servo, int speed)
+{
+    int pulse_width;
+    
+    if(speed < -100)
+    {
+    	speed = -100;
+    }
+    if(speed > 100)
+    {
+    	speed = 100;
+    }
+    
+    pulse_width = exp_servo_mid[which_servo]+(int)((float)speed*2.5);
+    
+    if(which_servo==0)
+      servo0 = pulse_width;
+    if(which_servo==1)
+      servo1 = pulse_width;
+    if(which_servo==2)
+      servo2 = pulse_width;
+    if(which_servo==3)
+      servo3 = pulse_width;
+    if(which_servo==4)
+      servo4 = pulse_width;
+    if(which_servo==5)
+      servo5 = pulse_width;  
+    
+    return pulse_width;
+}

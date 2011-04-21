@@ -1,0 +1,21 @@
+//Ryan Hartlage 2008-2010
+#use exp_servo_lib.ic
+
+int main()
+{
+    //enable servo outputs on the expansion board
+    exp_servo_enable();
+    
+    //use known calibration to set minimum and maximum pulse widths
+    exp_servo_min[5] = 400;
+    exp_servo_max[5] = 4000;
+    
+    //move the servo in servo port 5 to 90
+    exp_servo_deg(5,90);
+    
+    //wait a little bit so the servo can move
+    sleep(1.0);
+    
+    //disable servo outputs on the expansion board
+    exp_servo_disable();
+}

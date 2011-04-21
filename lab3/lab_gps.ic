@@ -1,0 +1,47 @@
+
+#use "exp_servo_lib.ic"
+#use "exp_servo_calibrate.ic"
+#use "gps_module.icb"
+#use "gps_module.ic"
+
+
+#define SERVO_NUMBER 2
+#define SERVO_MIN 274
+#define SERVO_MAX 4235
+
+void main() {
+    int ang = 90;
+    
+    exp_servo_min[SERVO_NUMBER] = SERVO_MIN;
+    exp_servo_max[SERVO_NUMBER] = SERVO_MAX;
+    exp_servo_enable();
+    
+    gps_initialize_knob();
+    gps_enable();
+    
+    for(;;) {
+        while(!gps_get_data())
+          ;
+        printf("\nGPS Data: %d", gps_heading);
+        if(gps_heading < 100)  printf(" ");
+        if(gps_heading < 10)   printf(" ");
+        printf("   ");
+        if(gps_heading > 90)  {
+            if(gps_heading > 90+16)
+                  ang -= 16;
+                else
+                  --ang;
+         
+        } else if(gps_heading < 90) { 
+            if(gps_heading < 90-16)
+              ang += 16;
+            else
+            ++ang;
+        }
+        printf("Servo ang:  %d", ang);
+        while(ang < 0)
+          ang += 180;
+        ang = ang % 180;
+        exp_servo_deg(SERVO_NUMBER, ang);
+    }
+}
