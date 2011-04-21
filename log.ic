@@ -1,0 +1,214 @@
+/*
+ * Logging code, version 1.0
+ * By Andrew Krieger
+ * 20 Apr 2011
+ *
+ * This code lets us log events on our Handy Board.
+ * Events are stored as one byte IDs.
+ * Events are divided into the null event, normal events, and extended events.
+ * The null event is used as a placeholder.  If you try to log it, it will be ignored.
+ * Normal events only store their one byte ID.
+ * Extended events store their ID and a one byte argument.
+ * Any event with ID >= EV_EXTENDED is considered extended.
+ * (Please don't make EV_NULL >= EV_EXTENDED, or this code will probably malfunction)
+ */ 
+
+//the size of the log buffer
+#define LOG_BUFFER_SZ 256
+//sleep in between checking buttons to make sure we don't count multiple button presses
+#define BUTTON_DELAY_TIME 0.5
+
+//If we need more normal events, we can increase EV_EXTENDED
+//All events (except EV_NULL) that are less than EV_EXTENDED are normal
+#define EV_NULL     0x00
+#define EV_EXTENDED 0x80
+
+
+//Sample events - please overwrite
+#define EV_SAMPLE_1     0x01
+#define EV_SAMPLE_2     0x02
+#define EV_SAMPLE_3     0x24
+
+#define EV_SAMPLE_EXT_1 0x80
+#define EV_SAMPLE_EXT_2 0xBE
+
+//global variables
+char log_buffer[LOG_BUFFER_SZ];
+int log_buffer_ins;
+
+
+/*
+ * Circular buffer functions.
+ * The buffer only has one index, used as both a read and write point.
+ * The first datum to be read is the one immediately after the index.
+ * When reading data, NULL bytes are skipped.
+ * When writing data, the id being overwritten is checked.
+ * If it's an extended event, so we also clear its argument byte to NULL.
+ * That way, the next read or write will happily ignore it.
+ * If it's a normal event, then we just overwrite it.
+ * Writing moves the insertion point forward.
+ * Reads are handled bu read_logs.  It's ugly, but I don't see any reason
+ * to add a general-purose read function.
+ * See http://en.wikipedia.org/wiki/Circular_buffer for more information about circular buffers.
+ */
+
+/*
+ * Clear the log buffer
+ */
+void clear_log_buffer(void) {
+    int i;
+    
+    for(i=0;i<LOG_BUFFER_SZ; ++i)
+      log_buffer[i] = EV_NULL;
+    
+    log_buffer_ins = 0;
+}
+
+/*
+ * Add a single byte to the log buffer.
+ * Doesn't handle writing extended events differently.
+ * Does handle overwrites of extended events properly.  See above for details.
+ */
+void add_to_log_buffer(int b) {
+    if(log_buffer[log_buffer_ins] >= EV_EXTENDED)
+        //extended event.  Overwrite the argument byte with EV_NULL.
+        log_buffer[(log_buffer_ins + 1) % LOG_BUFFER_SZ] = EV_NULL;
+    log_buffer[log_buffer_ins] = b;
+    log_buffer_ins = (log_buffer_ins + 1) % LOG_BUFFER_SZ;
+}
+
+/*
+ * Actually print the logs to the screen.
+ * Warning: heavy wizardry begins here
+ * Any time you see something like "i = (i+1) % LOG_BUFFER_SZ;",
+ * that is advancing i to the next spot in the circular buffer
+ */
+void read_logs(void) {
+    int n_events;
+    int curr_event;
+    int i;
+    
+    //Count number of actual events
+    n_events = 0;
+    for(i = (log_buffer_ins + 1) % LOG_BUFFER_SZ; i != log_buffer_ins; i = (i+1) % LOG_BUFFER_SZ) {
+        //Is this a real event (ie, not EV_NULL) ?
+        if(log_buffer[i] != EV_NULL) {
+            //Yes, count it
+            ++n_events;
+            if(log_buffer[i] >= EV_EXTENDED) {
+                //Skip the argument byte if it's extended
+                i = (i+1) % LOG_BUFFER_SZ;
+                //Make sure to stop if we end on an extended argument
+                //Without this, a misformed event log can cause an infinite loop
+                if(i == log_buffer_ins)
+                  break;
+            }
+        }
+    }
+    
+    //catch the special case of an empty event log
+    if(n_events == 0) {
+        printf("No events in log\n");
+        while(!stop_button())
+          ;
+        return;
+    }
+    
+    //The curr_event counter is just for the user's convenience - the code doesn't use it
+    curr_event = 0;
+    
+    //Find first event
+    i = (log_buffer_ins + 1) % LOG_BUFFER_SZ;
+    while(log_buffer[i] == EV_NULL)
+      i = (i+1) % LOG_BUFFER_SZ;
+    
+    for(;;) {
+        //Is this an extended event?
+        if(log_buffer[i] >= EV_EXTENDED)
+          //Yes; print it and its argument
+          printf("E: %x A: %x ", log_buffer[i], log_buffer[(i+1) % LOG_BUFFER_SZ]);
+        else
+          //No; only print the event
+          printf("E: %x         ", log_buffer[i]);
+        
+        //Display event number
+        printf("%d/%d\n", curr_event+1, n_events);
+        
+        //Wait for user input
+        sleep(BUTTON_DELAY_TIME);
+        for(;;) {
+            if(start_button())
+              //Go to next event
+              break;
+            if(stop_button())
+              //Stop reading logs
+              return;
+        }
+        
+        //Update the current event counter - this is just for the user's benefit; this code doesn't use it
+        curr_event = (curr_event+1) % n_events;
+        
+        //Actually go to the next event (or loop back to this one if it's the only one)
+        //Skip argument if this is extended
+        if(log_buffer[i] >= EV_EXTENDED)
+          i = (i+1) % LOG_BUFFER_SZ;
+        //Go to next event
+        i = (i+1) % LOG_BUFFER_SZ;
+        //Skip any null events
+        while(log_buffer[i] == EV_NULL)
+          i = (i+1) % LOG_BUFFER_SZ;
+    }
+}
+
+/*
+ * Main entry point.  Call on startup or reset.
+ * Prompts the user to read logs.  Optionally displays logs
+ * Either way, resets logs at the end.
+ */
+void init_log(void) {
+    printf("STOP to see log START to skip\n");
+    
+    //Wait for user input
+    for(;;) {
+        if(start_button())
+          //Skip the logs
+          break;
+        if(stop_button()) {
+            //Wait a little bit so the user can let go of the STOP button
+            sleep(BUTTON_DELAY_TIME);
+            //Then read the logs
+            read_logs();
+            break;
+        }
+    }
+    
+    //Reset the circular buffer
+    clear_log_buffer();
+}
+
+/*
+ * The actual logging function.
+ * If the event is a normal (non-extended) event, the second argument is ignored.
+ * If it's an extended event, the second argument becomes the event argument.
+ */
+void log_event(int ev, int arg) {
+    if(ev == EV_NULL)
+      return;
+    
+    add_to_log_buffer(ev);
+    if(ev >= EV_EXTENDED)
+      add_to_log_buffer(arg);
+}
+
+
+//For testing
+void main() {
+    clear_log_buffer();
+    log_event(EV_SAMPLE_1, 0);
+    log_event(EV_SAMPLE_2, 0);
+    log_event(EV_SAMPLE_3, 0);
+    log_event(EV_SAMPLE_EXT_1, 1);
+    log_event(EV_SAMPLE_EXT_2, -1);
+    init_log();
+    printf("Done\n");
+}
