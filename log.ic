@@ -1,7 +1,8 @@
 /*
- * Logging code, version 1.0
+ * Logging code, version 1.1
  * By Andrew Krieger
- * 20 Apr 2011
+ * Created 20 Apr 2011
+ * Modified 21 Apr 2011
  *
  * This code lets us log events on our Handy Board.
  * Events are stored as one byte IDs.
@@ -12,6 +13,9 @@
  * Any event with ID >= EV_EXTENDED is considered extended.
  * (Please don't make EV_NULL >= EV_EXTENDED, or this code will probably malfunction)
  */ 
+
+//Link utility functions
+#use "util.ic"
 
 //the size of the log buffer
 #define LOG_BUFFER_SZ 256
@@ -87,6 +91,8 @@ void read_logs(void) {
     int n_events;
     int curr_event;
     int i;
+    int button;
+    int arg;
     
     //Count number of actual events
     n_events = 0;
@@ -124,26 +130,35 @@ void read_logs(void) {
     
     for(;;) {
         //Is this an extended event?
-        if(log_buffer[i] >= EV_EXTENDED)
-          //Yes; print it and its argument
-          printf("E: %x A: %x ", log_buffer[i], log_buffer[(i+1) % LOG_BUFFER_SZ]);
-        else
-          //No; only print the event
-          printf("E: %x         ", log_buffer[i]);
+        if(log_buffer[i] >= EV_EXTENDED) {
+            //Yes; print it and its argument
+            //Format: "E:XX A:XX (DDD) "
+            arg = log_buffer[(i+1) % LOG_BUFFER_SZ];
+            printf("E:");
+            print_hex_byte(log_buffer[i]);
+            printf(" A:");
+            print_hex_byte(arg);
+            printf(" (%d) ", arg);
+            if(arg < 100) printf(" ");
+            if(arg < 10)  printf(" ");
+            
+        } else {
+            //No; only print the event
+            //Format: "E:XX            "
+            printf("E:");
+            print_hex_byte(log_buffer[i]);
+            printf("            ");
+        }
         
         //Display event number
         printf("%d/%d\n", curr_event+1, n_events);
         
-        //Wait for user input
-        sleep(BUTTON_DELAY_TIME);
-        for(;;) {
-            if(start_button())
-              //Go to next event
-              break;
-            if(stop_button())
-              //Stop reading logs
-              return;
-        }
+        //Wait for a button press
+        button = press_button();
+        if(button == BUTTON_STOP)
+          //Stop reading logs
+          return;
+        //Otherwise user pressed styart; go to next entry  
         
         //Update the current event counter - this is just for the user's benefit; this code doesn't use it
         curr_event = (curr_event+1) % n_events;
