@@ -10,10 +10,14 @@
 
 //Adjust the servo by BIG_STEP degrees when the GPS is far from 90 degrees
 #define BIG_STEP 8
+//If the GPS is within ACCEPTING_LIMIT degrees either way, don't adjust it any more
+#define ACCEPTING_LIMIT 2
 
 void main() {
     //Keep track of the current servo angle
     int ang = 90;
+    int old_ang;
+    float delay_time;
     
     //Enter servo calibration numbers and turn it on
     exp_servo_min[SERVO_NUMBER] = SERVO_MIN;
@@ -29,37 +33,50 @@ void main() {
         //Block until we get GPS data
         while(!gps_get_data())
           ;
-
-	//Print out GPS data for debugging purposes.  Print spaces for alignment
-        printf("GPS Data: %d", gps_heading);
+        
+        
+        //Print out GPS data for debugging purposes.  Print spaces for alignment
+        printf("GPS: %d", gps_heading);
         if(gps_heading < 100)  printf(" ");
         if(gps_heading < 10)   printf(" ");
         printf("   ");
-
-	//Turn the servo so that the GPS goes toward 90 degrees
-        if(gps_heading > 90)  {
-	    //If we're more than BIG_STEP degrees away, move BIG_STEP degrees toward 90
+        
+        //Turn the servo so that the GPS goes toward 90 degrees
+        if(gps_heading > 90 + ACCEPTING_LIMIT)  {
+            //If we're more than BIG_STEP degrees away, move BIG_STEP degrees toward 90
             if(gps_heading > 90+BIG_STEP)
               ang -= BIG_STEP;
-	    //Otherwise only one degree at a time
+            //Otherwise only one degree at a time
             else
               --ang;
             
-        } else if(gps_heading < 90) { 
-	    //do the same thing, but in the opposite direction
-	    if(gps_heading < 90-BIG_STEP)
+        } else if(gps_heading < 90 - ACCEPTING_LIMIT) { 
+            //do the same thing, but in the opposite direction
+            if(gps_heading < 90-BIG_STEP)
               ang += BIG_STEP;
             else
               ++ang;
         }
-
-	//Clamp the angle to [0,180) degrees
+        
+        //Clamp the angle to [0,180) degrees
+        old_ang = ang;
         while(ang < 0)
           ang += 180;
         ang = ang % 180;
-
-	//Display the servo angle and move the servo
-	printf("Servo ang: %d\n", ang);
+        
+        //Display the servo angle and move the servo
+        printf("Srv: %d", ang);
+        if(ang < 100) printf(" ");
+        if(ang < 10)  printf(" ");
         exp_servo_deg(SERVO_NUMBER, ang);
+        
+        delay_time = (float)knob() / 128.;
+        printf("Dly: %f\n", delay_time);
+        
+        //If we reset the angle (from 0->180 or 180->0), then wait for the servo to move
+        if(old_ang != ang)
+          sleep(delay_time);
     }
+    
+    printf("Done\n");
 }
