@@ -1,0 +1,25 @@
+#use "util.ic"
+
+
+int main() {
+    int n;
+    int last_known;
+    
+    for(;;) {
+        printf("Press Start\n");
+        press_start();
+        
+        motor(1,100);
+        n=0;
+        last_known = digital(7);
+        while(!stop_button()) {
+            if(digital(7) != last_known) {
+                ++n;
+                last_known = !last_known;
+            }
+            printf("%d\n", n);
+        }
+        
+        ao();
+    }
+}
