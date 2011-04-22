@@ -1,0 +1,17 @@
+#use "util.ic"
+
+int main() {
+    for(;;) {
+        printf("Press start\n");
+        press_start();
+        
+        printf("Driving\n");
+        motor(1,100);
+        motor(3,100);
+        
+        while(!stop_button())
+          ;
+        
+        ao();
+    }
+}
