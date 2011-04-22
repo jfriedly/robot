@@ -8,6 +8,8 @@ void go_by_transitions(int target) {
     printf("Driving\n");
     
     last = digital(OPTO_PORT);
+    motor(1,100);
+    motor(3,100);
     for(n=0;n<target;++n) {
         while(digital(OPTO_PORT) == last)
           ;
