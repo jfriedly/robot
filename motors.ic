@@ -33,20 +33,20 @@ int main() {
         switch(sel) {
             case MOT_FORWARD:
               motor(1,100);
-              motor(3,100);
-              break;
+            motor(3,100);
+            break;
             case MOT_CW:
               motor(1,100);
-              motor(3,-100);
-              break;
+            motor(3,-100);
+            break;
             case MOT_CCW:
               motor(1,-100);
-              motor(3,100);
-              break;
+            motor(3,100);
+            break;
             case MOT_BACKWARD:
               motor(1,-100);
-              motor(3,-100);
-              break;
+            motor(3,-100);
+            break;
         }
         
         while(!stop_button())

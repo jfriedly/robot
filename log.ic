@@ -1,8 +1,8 @@
-/*
- * Logging code, version 1.1
- * By Andrew Krieger
- * Created 20 Apr 2011
- * Modified 21 Apr 2011
+/**
+ * @file   log.ic
+ * @brief  Logging code.
+ * @author Andrew Krieger
+ * @date   4/25/2011
  *
  * This code lets us log events on our Handy Board.
  * Events are stored as one byte IDs.
@@ -17,14 +17,13 @@
 //Link utility functions
 #use "util.ic"
 
-//the size of the log buffer
+///the size of the log buffer
 #define LOG_BUFFER_SZ 256
-//sleep in between checking buttons to make sure we don't count multiple button presses
-#define BUTTON_DELAY_TIME 0.5
 
-//If we need more normal events, we can increase EV_EXTENDED
-//All events (except EV_NULL) that are less than EV_EXTENDED are normal
+///The null event - used as an empty space
 #define EV_NULL     0x00
+
+///All events >= EV_EXTENDED are extended events
 #define EV_EXTENDED 0x80
 
 
@@ -36,10 +35,10 @@
 #define EV_SAMPLE_EXT_1 0x80
 #define EV_SAMPLE_EXT_2 0xBE
 
-//global variables
+///Circular buffer for events
 char log_buffer[LOG_BUFFER_SZ];
+///Insertion point in circular buffer
 int log_buffer_ins;
-
 
 /*
  * Circular buffer functions.
@@ -56,8 +55,12 @@ int log_buffer_ins;
  * See http://en.wikipedia.org/wiki/Circular_buffer for more information about circular buffers.
  */
 
-/*
- * Clear the log buffer
+/**
+ * @brief Clear the log buffer.
+ *
+ * Deletes all events currently in the buffer, and reinitializes the buffer.
+ * This is called at the end of init_log, so there usually isn't a reason
+ * to call it directly.
  */
 void clear_log_buffer(void) {
     int i;
@@ -68,10 +71,14 @@ void clear_log_buffer(void) {
     log_buffer_ins = 0;
 }
 
-/*
+/**
+ * @brief Low level routine to write a byte to the log buffer.
+ * @param b The byte to write.
+ *
  * Add a single byte to the log buffer.
- * Doesn't handle writing extended events differently.
- * Does handle overwrites of extended events properly.  See above for details.
+ * Doesn't handle writing extended events differently - just writes a byte.
+ * Does handle overwrites of extended events properly.  So, if it overwrites
+ * an extended event, it will also overwrite its argument to EV_NULL.
  */
 void add_to_log_buffer(int b) {
     if(log_buffer[log_buffer_ins] >= EV_EXTENDED)
@@ -81,8 +88,15 @@ void add_to_log_buffer(int b) {
     log_buffer_ins = (log_buffer_ins + 1) % LOG_BUFFER_SZ;
 }
 
-/*
+/**
+ * @brief Show logs on the LCD.
+ *
  * Actually print the logs to the screen.
+ * This is meant to be used by @ref init_log; there's no reason
+ * to call this directly.
+ */
+
+/*
  * Warning: heavy wizardry begins here
  * Any time you see something like "i = (i+1) % LOG_BUFFER_SZ;",
  * that is advancing i to the next spot in the circular buffer
@@ -175,9 +189,11 @@ void read_logs(void) {
     }
 }
 
-/*
- * Main entry point.  Call on startup or reset.
- * Prompts the user to read logs.  Optionally displays logs
+/**
+ * @brief Prompt the user to read the logs, then clear the buffer.
+ *
+ * Main entry point.  Call this on Handy Board startup or reset.
+ * Optionally displays the logs to the user using @ref read_logs.
  * Either way, resets logs at the end.
  */
 void init_log(void) {
@@ -201,7 +217,11 @@ void init_log(void) {
     clear_log_buffer();
 }
 
-/*
+/**
+ * @brief Log an event, optionally with an argument.
+ * @param ev The event to log.
+ * @param arg The event's argument (ignored if it's not an extended event).
+ *
  * The actual logging function.
  * If the event is a normal (non-extended) event, the second argument is ignored.
  * If it's an extended event, the second argument becomes the event argument.
@@ -215,15 +235,3 @@ void log_event(int ev, int arg) {
       add_to_log_buffer(arg);
 }
 
-
-//For testing
-void main() {
-    clear_log_buffer();
-    log_event(EV_SAMPLE_1, 0);
-    log_event(EV_SAMPLE_2, 0);
-    log_event(EV_SAMPLE_3, 0);
-    log_event(EV_SAMPLE_EXT_1, 1);
-    log_event(EV_SAMPLE_EXT_2, -1);
-    init_log();
-    printf("Done\n");
-}
