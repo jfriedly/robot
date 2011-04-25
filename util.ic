@@ -1,24 +1,28 @@
-/*
- * Utility code, version 1.0
- * By Andrew Krieger
- * 21 Apr 2011
- *
- * The following functions live in tis file:
- *   void print_hex_half(int b) - print the (lower) nibble of argument c in hex
- *   void print_hex_byte(int b) - print the lower byte of c in hex
- *   void press_start(void) - wait for the user to press and release start
- *   void press_stop(void) - wait for the user to press and release stop
- *   int press_button(void) - wait for user to press a button.  Returns BUTTON_START or BUTTON_STOP
+/**
+ * @file   util.ic
+ * @brief  Utility functions
+ * @author Andrew Krieger
+ * @date   4/25/2011
  */
 
+///Returned by @ref press_button if the start button is pressed
 #define BUTTON_START 0
+///Returned by @ref press_button if the stop button is pressed
 #define BUTTON_STOP 1
 
+/**
+ * @brief Print half a byte (4 bits) in hex.
+ * @param b The data to print.  Only the low 4 bits are used.
+ */
 void print_hex_half(int b) {
     //Select the proper character from the string below
     printf("%c", "0123456789ABCDEF"[b & 0x0F]);
 }
 
+/**
+ * @brief Print a byte in hex.
+ * @param b The byte to print.  Only the low 8 are used.
+ */
 void print_hex_byte(int b) {
     //Print the high nibble
     print_hex_half(b>>4);
@@ -26,6 +30,10 @@ void print_hex_byte(int b) {
     print_hex_half(b);
 }
 
+
+/**
+ * @brief Block until the start button is pressed.  The stop button is ignored.
+ */
 void press_start(void) {
     //Wait for the user to push start down
     while(!start_button())
@@ -36,6 +44,9 @@ void press_start(void) {
       ;
 }
 
+/**
+ * @brief Block until the stop button is pressed.  The start button is ignored.
+ */
 void press_stop(void) {
     //Wait for the user to push start down
     while(!stop_button())
@@ -46,6 +57,10 @@ void press_stop(void) {
       ;
 }
 
+/**
+ * @brief Block until the start or the stop button is pressed.
+ * @return @ref BUTTON_START or @ref BUTTON_STOP
+ */
 int press_button(void) {
     //Wait for a button to be pressed down
     for(;;) {
