@@ -1,0 +1,53 @@
+/*
+ * Turning code, version 1.0
+ * By Joel Friedly
+ * 26 Apr 2011
+ *
+ * The following functions live in this file:
+ *   void turn(bool north, int degree) - turn to new heading [degree]
+ */
+#use "gps_module.lis"
+#use "util.ic"
+#use "opto.ic"
+
+#define MOT_LEFT 0
+#define MOT_RIGHT 1
+#define THREE_SIXTY = 64.0
+#define CLOCKWISE 8675309
+#define CTRCLOCKWISE 1337
+
+///Note:  if we decide to make north a global variable, we won't need it here.
+void turn (bool north, int degree)
+{
+	int curr_heading, trans_to_turn;
+	/// Get some new GPS data.  Could take up to a quarter of a second.
+	while(!gps_get_data());
+
+	/// Make a copy of the current heading that we can work with so that we don't mess things up for other functions.
+	curr_heading=gps_heading;
+
+	/// Add 180 degrees to the current heading if it isn't facing northly
+	if(!north)
+		curr_heading+=180;
+	
+	/// Use go_by_transitions() to make accurate turns.  First we'll need to figure out how many transitions to go.  A bit of math needs to be done, so we'll typecast the integers to floats while it's doing the math and then typecast them back after we're done.
+	trans_to_turn = (int)(THREE_SIXTY * ((float)(degree-curr_heading)/360.0));
+
+	/// Currently code will only make it turn clockwise.  We can make it go both ways pretty easily later on if we want.  Comment this block out and uncomment the block starting at line 43 to do this.
+	if(trans_to_turn<0)
+		trans_to_turn+=THREE_SIXTY;
+	/// Call to go_by_transitions to make the motors actually go
+	go_by_transitions(trans_to_turn, CLOCKWISE);
+
+	/// Uncomment the block starting below if the robot can turn both directions
+	/*
+	if(trans_to_turn<0)
+	{
+		trans_to_turn=-trans_to_turn;
+		go_by_transitions(trans_to_turn, CTRCLOCKWISE);
+	}
+	else
+		go_by_transitions(trans_to_turn, CLOCKWISE);
+	*/
+
+}

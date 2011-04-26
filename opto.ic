@@ -1,8 +1,11 @@
 #use "util.ic"
 
 #define OPTO_PORT 7
-#define MOT_LEFT 0
-#define MOT_RIGHT 1
+#define CLOCKWISE 8675309
+#define CTRCLOCKWISE 1337
+#define MOT_LEFT 1
+#define MOT_RIGHT 3
+#define BOTH 2
 
 void go_by_transitions(int target, int motors) {
     int n, last;
@@ -13,14 +16,20 @@ void go_by_transitions(int target, int motors) {
     last = digital(OPTO_PORT);
 
 	/// If-else tree to decide which motor to use.  Did not use switch-case because Handy Board doesn't like that much.
-	if(motors==MOT_LEFT)
-    	motor(MOT_LEFT,100);
-	else if(motors==MOT_RIGHT)
-    	motor(MOT_RIGHT,100);
-	else if(motors==2)
+	if(motors==BOTH)
 	{
-    	motor(MOT_RIGHT,100);
     	motor(MOT_LEFT,100);
+		motor(MOT_RIGHT,100);
+	}
+	else if(motors==CTRCLOCKWISE)
+	{
+    	motor(MOT_LEFT,-100);
+		motor(MOT_RIGHT,100);
+	}
+	else if(motors==CLOCKWISE)
+	{
+    	motor(MOT_LEFT,100);
+		motor(MOT_RIGHT,-100);
 	}
     
 	/// The while loop takes continuous digital readings until it sees a change, then the for loop reverses what the while loop looks for.  The for loop only runs as many times as needed though.
@@ -43,8 +52,8 @@ void dist_test(void)
     press_start();
     
     last = digital(OPTO_PORT);
-    motor(MOT_LEFT, 100);
-    motor(MOT_RIGHT, 100);
+    motor(CLOCKWISE, 100);
+    motor(CTRCLOCKWISE, 100);
     while(!stop_button())
       {
         if(last != digital(OPTO_PORT))
@@ -72,7 +81,7 @@ int main()
             sleep(0.1);
         }
         
-        go_by_transitions(target, 2);
+        go_by_transitions(target, BOTH);
         
         
     }
