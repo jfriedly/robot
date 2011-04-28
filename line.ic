@@ -1,0 +1,55 @@
+#use "util.ic"
+
+#define LEFT_MOTOR_PORT 3
+#define RIGHT_MOTOR_PORT 4
+#define MID_OPTO_PORT 2
+#define LEFT_OPTO_PORT 4
+#define RIGHT_OPTO_PORT 6
+
+
+#define OPTO_THRESHOLD 50
+
+void turn_left(void) {
+    motor(LEFT_MOTOR_PORT, 100);
+    motor(RIGHT_MOTOR_PORT, 50);
+}
+
+void turn_right(void) {
+    motor(LEFT_MOTOR_PORT, 50);
+    motor(LEFT_MOTOR_PORT, 100);
+}
+
+int is_on_line(int opto) {
+    return analog(opto) > OPTO_THRESHOLD;
+}
+
+void main() {
+    int go_right = 0;
+    int on_line = 0;
+    
+    for(;;) {
+        printf("Press start\n");
+        press_start();
+        
+        while(!stop_button()) {
+            if(go_right)
+              turn_right();
+            else
+              turn_left();
+            
+            if(((int)mseconds() & 0x7F) == 0)
+              
+              printf("%d %d\n", on_line, analog(MID_OPTO_PORT));
+            
+            //Did we just find the line?
+            if(!on_line && is_on_line(MID_OPTO_PORT))
+              on_line = 1;
+            //Or did we just walk off it?
+            else if(on_line && !is_on_line(MID_OPTO_PORT)) {
+                on_line = 0;
+                go_right = !go_right;
+            }
+        }
+        ao();
+    }
+}

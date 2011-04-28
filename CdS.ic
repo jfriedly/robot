@@ -1,0 +1,39 @@
+/**
+ * @file   CdS.ic
+ * @brief  Functions involving the CdS cell
+ * @author Andrew Krieger
+ * @date   4/28/2011
+ *
+ * Currently, this file only defines wait_for_start()
+ */
+
+
+#use "util.ic"
+
+///Where the CdS cell lives
+#define CDS_PORT 2
+
+/**
+ * @brief Block until the CdS detects light
+ *
+ * If the CdS is near the starting light and has the sheild, then this won't
+ * start until the light comes on.  If the shield is missing, then it will
+ * probably start just from ambient light.
+ */
+void wait_for_start(void) {
+    printf("  Waiting for     start light\n");
+    while(analog(CDS_PORT) > 30)
+      ;
+}
+
+int main() {
+    for(;;) {
+        printf("Press start\n");
+        press_start();
+        
+        wait_for_start();
+        
+        printf("Done! Start to rst\n");
+        press_start();
+    }
+}
