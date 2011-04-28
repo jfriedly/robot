@@ -172,7 +172,7 @@ void read_logs(void) {
         if(button == BUTTON_STOP)
           //Stop reading logs
           return;
-        //Otherwise user pressed styart; go to next entry  
+        //Otherwise user pressed start; go to next entry  
         
         //Update the current event counter - this is just for the user's benefit; this code doesn't use it
         curr_event = (curr_event+1) % n_events;
@@ -197,21 +197,12 @@ void read_logs(void) {
  * Either way, resets logs at the end.
  */
 void init_log(void) {
+    int choice;
     printf("STOP to see log START to skip\n");
     
-    //Wait for user input
-    for(;;) {
-        if(start_button())
-          //Skip the logs
-          break;
-        if(stop_button()) {
-            //Wait a little bit so the user can let go of the STOP button
-            sleep(BUTTON_DELAY_TIME);
-            //Then read the logs
-            read_logs();
-            break;
-        }
-    }
+    choice = press_button();
+    if(choice == BUTTON_STOP)
+      read_logs();
     
     //Reset the circular buffer
     clear_log_buffer();
