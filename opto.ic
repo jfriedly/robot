@@ -1,33 +1,95 @@
 #use "util.ic"
 
 #define OPTO_PORT 7
+#define CLOCKWISE 8675309
+#define CTRCLOCKWISE 1337
+#define MOT_LEFT 1
+#define MOT_RIGHT 3
+#define BOTH 2
 
-#define MOTOR_RIGHT 1
-#define MOTOR_LEFT  3
+/**
+ * @brief Run motors til we get target transitions.
+ * @param target Number of transitions to achieve.
+ * @param motors CLOCKWISE, CTRCLOCKWISE, or BOTH
+ */ 
+void go_for_transitions(int target, int motors) {
+    int n, last;
+    
+    printf("Driving\n");
+    
+    // Get an initial value for last
+    // This is used to track changes in the optosensor input
+    last = digital(OPTO_PORT);
 
+    // If-else tree to decide which motor to use. Did not use switch-case because Handy Board doesn't like that much.
+    if(motors==BOTH)
+      {
+        motor(MOT_LEFT,100);
+        motor(MOT_RIGHT,100);
+    }
+    else if(motors==CTRCLOCKWISE)
+      {
+        motor(MOT_LEFT,-100);
+        motor(MOT_RIGHT,100);
+    }
+    else if(motors==CLOCKWISE)
+      {
+        motor(MOT_LEFT,100);
+        motor(MOT_RIGHT,-100);
+    }
+    
+    // The while loop takes continuous digital readings until it sees a change, then the for loop reverses what the while loop looks for. The for loop only runs as many times as needed though.
+    for(n=0;n<target;++n) {
+        while(digital(OPTO_PORT) == last)
+          ;
+        last = !last;
+    }
+    
+    // Turn everything off.
+    ao();
+    printf("Done\n");
+}
 
-
-int main()
-{    
-    int count;
+void dist_test(void)
+{
+    int n = 0;
     int last;
     
-    for(;;) {
-        printf("Press start\n");
-        press_start();
-        motor(MOTOR_RIGHT, 100);
-        motor(MOTOR_LEFT, 100);
-        
-        last = digital(OPTO_PORT);
-        while(!stop_button()) {
-            while(digital(OPTO_PORT) == last && !stop_button())
-              ;
-            
+    press_start();
+    
+    last = digital(OPTO_PORT);
+    motor(CLOCKWISE, 100);
+    motor(CTRCLOCKWISE, 100);
+    while(!stop_button())
+      {
+        if(last != digital(OPTO_PORT))
+          {
+            ++n;
             last = !last;
-            ++count;
-            printf("%d\n", count);
+          }
+    }
+    
+    ao();
+    
+    printf("Transitions %d\n", n);
+    
+}
+
+/*
+int main()
+{
+    int target;
+    
+    for(;;) {
+        while(!start_button()) {
+            target = 76 + (knob() - 128) / 8;
+            printf("Target: %d\n", target);
+            sleep(0.1);
         }
         
-        ao();
+        go_by_transitions(target, BOTH);
+        
+        
     }
 }
+*/
