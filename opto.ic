@@ -7,39 +7,45 @@
 #define MOT_RIGHT 3
 #define BOTH 2
 
-void go_by_transitions(int target, int motors) {
+/**
+ * @brief Run motors til we get target transitions.
+ * @param target Number of transitions to achieve.
+ * @param motors CLOCKWISE, CTRCLOCKWISE, or BOTH
+ */ 
+void go_for_transitions(int target, int motors) {
     int n, last;
     
     printf("Driving\n");
     
-	/// Get an initial value for last
+    // Get an initial value for last
+    // This is used to track changes in the optosensor input
     last = digital(OPTO_PORT);
 
-	/// If-else tree to decide which motor to use.  Did not use switch-case because Handy Board doesn't like that much.
-	if(motors==BOTH)
-	{
-    	motor(MOT_LEFT,100);
-		motor(MOT_RIGHT,100);
-	}
-	else if(motors==CTRCLOCKWISE)
-	{
-    	motor(MOT_LEFT,-100);
-		motor(MOT_RIGHT,100);
-	}
-	else if(motors==CLOCKWISE)
-	{
-    	motor(MOT_LEFT,100);
-		motor(MOT_RIGHT,-100);
-	}
+    // If-else tree to decide which motor to use. Did not use switch-case because Handy Board doesn't like that much.
+    if(motors==BOTH)
+      {
+        motor(MOT_LEFT,100);
+        motor(MOT_RIGHT,100);
+    }
+    else if(motors==CTRCLOCKWISE)
+      {
+        motor(MOT_LEFT,-100);
+        motor(MOT_RIGHT,100);
+    }
+    else if(motors==CLOCKWISE)
+      {
+        motor(MOT_LEFT,100);
+        motor(MOT_RIGHT,-100);
+    }
     
-	/// The while loop takes continuous digital readings until it sees a change, then the for loop reverses what the while loop looks for.  The for loop only runs as many times as needed though.
-	for(n=0;n<target;++n) {
+    // The while loop takes continuous digital readings until it sees a change, then the for loop reverses what the while loop looks for. The for loop only runs as many times as needed though.
+    for(n=0;n<target;++n) {
         while(digital(OPTO_PORT) == last)
           ;
         last = !last;
     }
     
-	/// Turn everything off.
+    // Turn everything off.
     ao();
     printf("Done\n");
 }
@@ -66,12 +72,12 @@ void dist_test(void)
     ao();
     
     printf("Transitions %d\n", n);
-        
+    
 }
 
-
+/*
 int main()
-{    
+{
     int target;
     
     for(;;) {
@@ -86,3 +92,4 @@ int main()
         
     }
 }
+*/
