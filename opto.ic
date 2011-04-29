@@ -12,15 +12,15 @@
  * @param target Number of transitions to achieve.
  * @param motors CLOCKWISE, CTRCLOCKWISE, or BOTH
  */ 
-void go_for_transitions(int target, int motors) {
+void go_by_transitions(int target, int motors) {
     int n, last;
     
-    printf("Driving\n");
+//    printf("Driving\n");
     
     // Get an initial value for last
     // This is used to track changes in the optosensor input
     last = digital(OPTO_PORT);
-
+    
     // If-else tree to decide which motor to use. Did not use switch-case because Handy Board doesn't like that much.
     if(motors==BOTH)
       {
@@ -39,15 +39,17 @@ void go_for_transitions(int target, int motors) {
     }
     
     // The while loop takes continuous digital readings until it sees a change, then the for loop reverses what the while loop looks for. The for loop only runs as many times as needed though.
+//    printf("0\n");
     for(n=0;n<target;++n) {
         while(digital(OPTO_PORT) == last)
           ;
         last = !last;
+//        printf("%d\n", n);
     }
     
     // Turn everything off.
     ao();
-    printf("Done\n");
+//    printf("Done\n");
 }
 
 void dist_test(void)
@@ -66,7 +68,7 @@ void dist_test(void)
           {
             ++n;
             last = !last;
-          }
+        }
     }
     
     ao();

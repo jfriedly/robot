@@ -25,15 +25,3 @@ void wait_for_start(void) {
     while(analog(CDS_PORT) > 30)
       ;
 }
-
-int main() {
-    for(;;) {
-        printf("Press start\n");
-        press_start();
-        
-        wait_for_start();
-        
-        printf("Done! Start to rst\n");
-        press_start();
-    }
-}

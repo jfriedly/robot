@@ -1,0 +1,98 @@
+/**
+ * @file   gps.ic
+ * @brief  GPS heading - 360 degree version
+ * @author Andrew Krieger
+ * @date   4/28/2011
+ */
+
+#use "gps_module.icb"
+#use "gps_module.ic"
+#use "util.ic"
+
+/// Robot angle, 0 to 359 degrees
+int robot_heading;
+/// Last GPS update time
+long gps_time;
+//Are we facing north?
+int facing_north = 0;
+
+//Angle between GPS and robot
+#define GPS_OFFSET 90
+
+int gps_pid = -1;
+
+/**
+ * @brief Nonblocking heading update code
+ */
+int update_heading(void) {
+    if(gps_get_data()) {
+        int last_heading = robot_heading;
+        
+        //Save heading age
+        gps_time = mseconds();
+        
+        //Get the new heading.  Correct for the GPS being perpendicular to the robot axis.
+        robot_heading = gps_heading + GPS_OFFSET;
+        
+        //Clamp robot_heading to [0, 180) if facing_north != 0
+        robot_heading = robot_heading % 180;
+        if(!facing_north)
+          robot_heading += 180;
+        
+        //See if we changed suddenly.  If our heading changed by > 45 degrees, assume it rolled around
+        //Unless gps_heading is exactly 0 (error with GPS)
+        //If the GPS reports 0, the robot_heading is 90 or 270, so we didn't really switch headings.
+        
+        if(abs(robot_heading - last_heading) > 45 && gps_heading != 0) {
+            if(facing_north) {
+                facing_north = 0;
+                robot_heading += 180;
+            } else {
+                facing_north = 1;
+                robot_heading -= 180;
+            }
+        } 
+        //printf("%d\n", robot_heading);
+        
+        return 1;
+    } else
+      return 0;
+}
+
+
+/**
+ * @brief Blocking GPS update code
+ */
+void get_new_heading(void) {
+    while(!update_heading())
+      ;
+}
+
+/**
+ * @brief Background update heading
+ */
+void background_heading(void) {
+    for(;;) {
+        update_heading();
+        defer();
+    }
+}
+
+
+/**
+ * @brief Start keeping background GPS data
+ */
+void init_bkgd_gps(void) {
+    gps_initialize_knob();
+    gps_enable();
+    
+    update_heading();
+    gps_pid = start_process(background_heading());
+    defer();
+}
+
+void kill_bkgd_gps(void) {
+    if(gps_pid != -1)
+      kill_process(gps_pid);
+    gps_pid = -1;
+}

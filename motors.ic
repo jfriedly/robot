@@ -8,7 +8,7 @@
 #define MOTOR_LEFT  3
 #define MOTOR_RIGHT 1
 
-#define MOTOR_POWER 50
+#define MOTOR_POWER 100
 
 int main() {
     int sel = 0, old = -1;

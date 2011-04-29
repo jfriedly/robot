@@ -80,3 +80,16 @@ int press_button(void) {
         }
     }
 }
+
+/**
+ * @brief Integer absolute value
+ * @param x The integer whose absolute value is be found
+ * @return The absolute value of x
+ */
+int abs(int x) {
+    if(x < 0)
+      return -x;
+    else
+      return x;
+}
+

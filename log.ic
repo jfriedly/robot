@@ -198,10 +198,10 @@ void read_logs(void) {
  */
 void init_log(void) {
     int choice;
-    printf("STOP to see log START to skip\n");
+    printf("START to see logSTOP to skip\n");
     
     choice = press_button();
-    if(choice == BUTTON_STOP)
+    if(choice == BUTTON_START)
       read_logs();
     
     //Reset the circular buffer

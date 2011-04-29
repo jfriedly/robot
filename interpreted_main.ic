@@ -1,0 +1,201 @@
+/**
+ * @file   main.ic
+ * @brief  Main loop
+ * @author Andrew Krieger
+ * @date   4/26/2011
+ *
+ */
+
+#use "log.ic"
+#use "util.ic"
+#use "gps.ic"
+#use "CdS.ic"
+#use "turn.ic"
+
+#define ACTION_HALT 0
+#define ACTION_WAIT_FOR_START_LIGHT      1
+#define ACTION_WAIT_FOR_START_BUTTON     2
+#define ACTION_FROWARD_BY_KNOB           3
+#define ACTION_CALIBRATE_GPS             4
+
+#define ACTION_1ARG 100
+#define ACTION_FORWARD_TO_GPS_Y(lim)     100, lim
+#define ACTION_TURN_TO_ANGLE(ang)        101, ang
+#define ACTION_FORWARD_BY_TRANSITIONS(t) 102, t
+
+#define ACTION_2ARG 200
+#define ACTION_DRIVE_TO_GPS(x,y)         200, x, y
+#define ACTION_TURN_BY_TRANSITIONS(t,d)  201, t, d
+
+#define MOTOR_LEFT  1
+#define MOTOR_RIGHT 3
+
+int ACTIONS[] = {
+    ACTION_CALIBRATE_GPS,
+    ACTION_WAIT_FOR_START_LIGHT,
+      ACTION_FORWARD_BY_TRANSITIONS(160),
+      ACTION_TURN_BY_TRANSITIONS(11, CTRCLOCKWISE),
+      ACTION_FORWARD_BY_TRANSITIONS(85),
+      ACTION_HALT
+  };
+
+int halt = 0;
+
+void calibrate_gps() {
+    while(!start_button()) {
+        printf("GPS: %d\n", robot_heading);
+        sleep(0.05);
+    }
+    
+}
+
+int curr_action = 0;
+void step(void) {
+    int act, arg1, arg2;
+    
+    arg1 = arg2 = -1;
+    
+    act = ACTIONS[curr_action++];
+    if(act >= ACTION_1ARG)
+      arg1 = ACTIONS[curr_action++];
+    if(act >= ACTION_2ARG)
+      arg2 = ACTIONS[curr_action++];
+    
+//    printf("Act: %d Arg1: %d Arg2: %d\n", act, arg1, arg2);
+//    press_start();
+    
+    switch(act) {
+        case ACTION_HALT:
+          halt = 1;
+        break;
+        
+        case ACTION_WAIT_FOR_START_LIGHT:
+          wait_for_start();
+        break;
+        
+        case ACTION_WAIT_FOR_START_BUTTON:
+          printf("   Waiting for     start btn\n");
+        press_start();
+        break;
+        
+        case ACTION_CALIBRATE_GPS:
+          calibrate_gps();
+        break;
+        
+        
+        
+        case 100: //ACTION_FORWARD_TO_GPS_Y
+          //          forward_to_gps(arg1);
+          break;
+        
+        case 101: //ACTION_TURN_TO_ANGLE
+          turn_to_angle(arg1);
+        break;
+        case 102: //ACTION_FORWARD_BY_TRANSITIONS
+          go_by_transitions(arg1, BOTH);
+        break;
+        
+        case 200: //ACTION_DRIVE_TO_GPS
+          //          drive_to_gps(arg1, arg2);
+          break;
+                    
+        case 201: //ACTION_TURN_BY_TRANSITIONS
+          go_by_transitions(arg1, arg2);
+        break;
+    }        
+}
+
+void forward_by_knob(void) {
+    int trans;
+    int old_trans = -1;
+    
+    while(!start_button()) {
+        trans = 170 + (knob() - 128)/8;
+        if(trans != old_trans) {
+            printf("T: %d\n", trans);
+            old_trans = trans;
+        }
+    }
+    
+    go_by_transitions(trans, BOTH);
+}
+
+int main() { 
+    for(;;) {
+        init_log();
+        init_bkgd_gps();
+        
+        while(!halt)
+          step();
+        
+        kill_bkgd_gps();
+        printf("Halted:         Press START\n");
+        press_start();
+    }
+}
+
+
+#if 0
+
+/// 
+#define ACCEPTABLE_ANGLE 90
+//Temporary hack to get up ramp
+void drive_north(void) {
+    printf("GPS Y:%d\n", gps_y);
+    press_start();
+    while(gps_y < 190) {
+        printf("%d %d\n", gps_time, mseconds());
+        
+        //while(gps_time != mseconds())
+        //;
+        
+        if(robot_heading > 180) {
+            printf("PANIC!  Bad hdg %d\n", robot_heading);
+            ao();
+            for(;;)
+              ;
+        }
+        
+        if(robot_heading < 90 - ACCEPTABLE_ANGLE) {
+            if(robot_heading < 45) {
+                motor(MOTOR_RIGHT, 100);
+                motor(MOTOR_LEFT,  0);
+                log_event(0,15);
+            } else {
+                motor(MOTOR_RIGHT, 100);
+                motor(MOTOR_LEFT, 50);
+                log_event(1,10);
+            }
+        } else if(robot_heading > 90 + ACCEPTABLE_ANGLE) {
+            if(robot_heading > 135) {
+                motor(MOTOR_RIGHT,  0);
+                motor(MOTOR_LEFT, 100);
+                log_event(25,0);
+            } else {
+                motor(MOTOR_RIGHT, 50);
+                motor(MOTOR_LEFT, 100);
+                log_event(20,0);
+            }
+        } else {
+            motor(MOTOR_RIGHT, 100);
+            motor(MOTOR_LEFT,  100);
+            log_event(30,0);
+        }
+        
+        sleep(0.1);
+    }       
+}
+
+/*
+    int i;
+    init_log();
+    
+    init_bkgd_gps();
+    
+    for(;;)
+      step();
+    
+}
+*/
+
+#endif //if 0
