@@ -53,10 +53,9 @@ void turn(int ang) {
     
     printf("=%d\n", trans_to_turn);
     
-//    press_start();
     
     if(trans_to_turn < 0) {
-        go_by_transitions(trans_to_turn, CTRCLOCKWISE);
+        go_by_transitions(-trans_to_turn, CTRCLOCKWISE);
     }
     else {
         go_by_transitions(trans_to_turn, CLOCKWISE);

@@ -34,7 +34,7 @@ int ACTIONS[] = {
     ACTION_CALIBRATE_GPS,
     ACTION_WAIT_FOR_START_LIGHT,
       ACTION_FORWARD_BY_TRANSITIONS(160),
-      ACTION_TURN_BY_TRANSITIONS(11, CTRCLOCKWISE),
+      ACTION_TO_ANGLE(135),
       ACTION_FORWARD_BY_TRANSITIONS(85),
       ACTION_HALT
   };
@@ -91,6 +91,7 @@ void step(void) {
         case 101: //ACTION_TURN_TO_ANGLE
           turn_to_angle(arg1);
         break;
+
         case 102: //ACTION_FORWARD_BY_TRANSITIONS
           go_by_transitions(arg1, BOTH);
         break;
@@ -138,7 +139,7 @@ int main() {
 #if 0
 
 /// 
-#define ACCEPTABLE_ANGLE 90
+#define ACCEPTABLE_ANGLE 5
 //Temporary hack to get up ramp
 void drive_north(void) {
     printf("GPS Y:%d\n", gps_y);
@@ -185,17 +186,5 @@ void drive_north(void) {
         sleep(0.1);
     }       
 }
-
-/*
-    int i;
-    init_log();
-    
-    init_bkgd_gps();
-    
-    for(;;)
-      step();
-    
-}
-*/
 
 #endif //if 0
