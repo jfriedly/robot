@@ -13,6 +13,21 @@ function gps_update():
        	  Toggle whether the robot is facing north or south
 	  Adjust the heading angle accordingly
 
+function log_event(event, argument):
+//Log an event, possibly saving an event with it.
+//Some events get arguments, some don't
+       add event to circular buffer
+       if event takes an argument:
+       	  add argument to circular buffer
+
+
+function read_logs():
+    count number of events in log
+    if there are any events in the buffer:
+       Display events one at a time to the screen
+       When the user presses start, show the next event
+       When the user presses stop, return
+
 
 function wait_for_start():
     while CdS cell is not bright:
