@@ -2,7 +2,19 @@
 //Note:  We use very strong magnets to pull the wagon, so a "hooking up" function is not needed.
 
 
-def wait_for_start():
+function gps_update():
+//This function is run in the background to update the robot's heading
+//The robot's heading is saved as an integer from 0 to 359 degrees,
+//with 90 degrees pointing toward the barn, as in the normal course coordinates.
+    if get_gps_data fetches new data:
+       determine robot heading from GPS data, as an angle from 0 to 179 degrees
+       If the robot is facing south, add 180 degrees
+       If the heading rolled over from 0 to 179, 179 to 0, 180 to 359, or 359 to 180:
+       	  Toggle whether the robot is facing north or south
+	  Adjust the heading angle accordingly
+
+
+function wait_for_start():
     while CdS cell is not bright:
         wait
     return
@@ -15,25 +27,6 @@ function turn(angle):
         else:
             try to turn CW to angle with shaft encoder
     return
-
-
-function drive_to(x,y):
-    stop motors
-    do:
-        determine angle to (x,y)
-        determine distance to (x,y)
-
-        if(heading is within 10 degrees of angle):
-            drive straight ahead
-        elif(heading is within 45 degrees of angle):
-            if(heading > angle):
-                drive with more power to left motor to compensate
-            else:
-                drive with more power to right motor to compensate
-        else:
-            turn to angle, using turn function
-
-    while(distance > epsilon)
 
 
 function align_with_metal_strip(angle):
