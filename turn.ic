@@ -57,9 +57,14 @@ void turn(int ang) {
     if(trans_to_turn < 0) {
         go_by_transitions(-trans_to_turn, CTRCLOCKWISE);
     }
-    else {
+    else if(trans_to_turn > 0){
         go_by_transitions(trans_to_turn, CLOCKWISE);
     }
+    else
+    {
+        return;
+    }
+    
 }
 
 
@@ -134,4 +139,5 @@ int main ()
 */
     
     #endif //if 0
+    
     
