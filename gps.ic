@@ -10,11 +10,15 @@
 #use "util.ic"
 
 /// Robot angle, 0 to 359 degrees
-int robot_heading;
+int robot_heading = 90;
 /// Last GPS update time
 long gps_time;
 //Are we facing north?
-int facing_north = 0;
+int facing_north = 1;
+
+int gps_print = 0;
+
+int theta;
 
 //Angle between GPS and robot
 #define GPS_OFFSET 90
@@ -52,7 +56,9 @@ int update_heading(void) {
                 robot_heading -= 180;
             }
         } 
-        //printf("%d\n", robot_heading);
+        
+        if(gps_print)
+          printf("X:%d Y:%d H:%d Theta:%d\n", gps_x, gps_y, robot_heading, theta);
         
         return 1;
     } else
@@ -95,4 +101,12 @@ void kill_bkgd_gps(void) {
     if(gps_pid != -1)
       kill_process(gps_pid);
     gps_pid = -1;
+}
+
+void gps_print_enable(void) {
+    gps_print = 1;
+}
+
+void gps_print_disable(void) {
+    gps_print = 0;
 }
