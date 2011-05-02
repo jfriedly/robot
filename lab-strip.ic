@@ -17,6 +17,47 @@
 #define BOTH 2
 #define MOT_PWR 40
 
+#use "util.ic"
+
+persistent int strip_thresh_l, strip_thresh_m, strip_thresh_r;
+
+void calibrate_optos(void) {
+    //High left, middle, right
+    int hl, hm, hr; 
+    //Low left, middle, right
+    int ll, lm, lr;
+    int btn;
+    
+    printf("STP skip opt calCurr: %d %d %d\n", strip_thresh_l, strip_thresh_m, strip_thresh_r);
+    
+    btn = press_button();
+    if(btn == BUTTON_STOP)
+      return;
+    
+    printf("Put 3 optos overblack line\n");
+    press_start();
+    
+    ll = analog(STRIP_PORT_LEFT);
+    lm = analog(STRIP_PORT_MIDDLE);
+    lr = analog(STRIP_PORT_RIGHT);
+    
+    printf("Put 3 optos overnormal ground\n");
+    press_start();
+    hl = analog(STRIP_PORT_LEFT);
+    hm = analog(STRIP_PORT_MIDDLE);
+    hr = analog(STRIP_PORT_RIGHT);
+    
+    strip_thresh_l = (ll + hl) / 2;
+    strip_thresh_m = (lm + hm) / 2;
+    strip_thresh_r = (lr + hr) / 2;
+    
+    printf("Calibrated to   %d %d %d\n", strip_thresh_l, strip_thresh_m, strip_thresh_r);
+}
+
+
+
+
+
 
 // code to use one optosensor
 int main()
@@ -24,17 +65,20 @@ int main()
     int righty=1;
     int readingL, readingM, readingR;
     
+    calibrate_optos();
+    
+    printf("Press start,    loser!\n");
     while(!start_button());
     
     while(!stop_button())
-    {
+      {
         readingL=analog(STRIP_PORT_LEFT);
         readingM=analog(STRIP_PORT_MIDDLE);
         readingR=analog(STRIP_PORT_RIGHT);
         printf("L=%d M=%d R=%d\n", readingL, readingM, readingR);
         
-        while(readingL > STRIP_THRESHOLD_LEFT)
-        {
+        while(readingL > strip_thresh_l)
+          {
             motor(MOT_LEFT,MOT_PWR);
             motor(MOT_RIGHT,-MOT_PWR);
             readingL=analog(STRIP_PORT_LEFT);
@@ -44,8 +88,8 @@ int main()
         }
         righty=0;
         
-        while(readingL < STRIP_THRESHOLD_LEFT)
-        {
+        while(readingL < strip_thresh_l)
+          {
             motor(MOT_LEFT,MOT_PWR);
             motor(MOT_RIGHT,MOT_PWR);
             readingL=analog(STRIP_PORT_LEFT);
@@ -53,7 +97,7 @@ int main()
             readingR=analog(STRIP_PORT_RIGHT);
             printf("L=%d M=%d R=%d\n", readingL, readingM, readingR);
         }
-        ao();
+//fire        ao();
         sleep(0.05);
     }
     

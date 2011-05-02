@@ -36,9 +36,9 @@
 #define EV_SAMPLE_EXT_2 0xBE
 
 ///Circular buffer for events
-char log_buffer[LOG_BUFFER_SZ];
+persistent char log_buffer[LOG_BUFFER_SZ];
 ///Insertion point in circular buffer
-int log_buffer_ins;
+persistent int log_buffer_ins;
 
 /*
  * Circular buffer functions.
