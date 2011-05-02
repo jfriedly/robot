@@ -13,7 +13,7 @@
 
 #define MOT_LEFT 1
 #define MOT_RIGHT 3
-#define THREE_SIXTY 64.0
+#define THREE_SIXTY 40.0
 #define CLOCKWISE 8675309
 #define CTRCLOCKWISE 1337
 
@@ -22,19 +22,21 @@ void turn_to_angle(int ang) {
         log_event(EV_EXTENDED,   ang);
         log_event(EV_EXTENDED+1, robot_heading);
         turn(ang);
+        sleep(1.0);
     }
 }
 
 void turn(int ang) {
-    int theta;
     int ccw;
     int trans_to_turn;
     
     ao();
     
+    gps_print_enable();
+    
     ang = ang % 360;
     
-    printf("H%d A%d ", robot_heading, ang);
+//    printf("H%d A%d ", robot_heading, ang);
     
     // After this line, -359 <= theta <= 359
     theta = ang - robot_heading;
@@ -47,18 +49,23 @@ void turn(int ang) {
     if(ccw)
       theta -= 180;
     
-    printf("T%d", theta);
+    if(theta > 30)
+      theta = 30;
+    if(theta < -30)
+      theta = -30;
+    
+//    printf("T%d", theta);
     
     trans_to_turn = (int)(THREE_SIXTY * ((float)theta/360.0));
     
-    printf("=%d\n", trans_to_turn);
+//    printf("=%d\n", trans_to_turn);
     
     
     if(trans_to_turn < 0) {
-        go_by_transitions(-trans_to_turn, CTRCLOCKWISE);
+        go_by_transitions(-trans_to_turn, CLOCKWISE);
     }
     else {
-        go_by_transitions(trans_to_turn, CLOCKWISE);
+        go_by_transitions(trans_to_turn, CTRCLOCKWISE);
     }
 }
 
@@ -134,4 +141,5 @@ int main ()
 */
     
     #endif //if 0
+    
     

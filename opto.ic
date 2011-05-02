@@ -6,6 +6,7 @@
 #define MOT_LEFT 1
 #define MOT_RIGHT 3
 #define BOTH 2
+#define BACKWARDS 10
 
 /**
  * @brief Run motors til we get target transitions.
@@ -15,7 +16,7 @@
 void go_by_transitions(int target, int motors) {
     int n, last;
     
-//    printf("Driving\n");
+    //    printf("Driving\n");
     
     // Get an initial value for last
     // This is used to track changes in the optosensor input
@@ -35,21 +36,24 @@ void go_by_transitions(int target, int motors) {
     else if(motors==CLOCKWISE)
       {
         motor(MOT_LEFT,100);
-        motor(MOT_RIGHT,-100);
+         motor(MOT_RIGHT,-100);
+    } else if(motors == BACKWARDS) {
+        motor(MOT_LEFT, -100);
+        motor(MOT_RIGHT, -100);
     }
     
     // The while loop takes continuous digital readings until it sees a change, then the for loop reverses what the while loop looks for. The for loop only runs as many times as needed though.
-//    printf("0\n");
+    //    printf("0\n");
     for(n=0;n<target;++n) {
         while(digital(OPTO_PORT) == last)
           ;
         last = !last;
-//        printf("%d\n", n);
+        //        printf("%d\n", n);
     }
     
     // Turn everything off.
     ao();
-//    printf("Done\n");
+    //    printf("Done\n");
 }
 
 void dist_test(void)
