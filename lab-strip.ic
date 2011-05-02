@@ -1,0 +1,60 @@
+/**
+ * @file   strip.ic
+ * @brief  Follow metal strip
+ * @author Joel Friedly
+ * @date   4/30/2011
+ */
+
+#define STRIP_PORT_LEFT 4
+#define STRIP_PORT_MIDDLE 5
+#define STRIP_PORT_RIGHT 6
+#define STRIP_THRESHOLD_R_AND_M 50
+#define STRIP_THRESHOLD_LEFT 70
+#define CLOCKWISE 8675309
+#define CTRCLOCKWISE 1337
+#define MOT_LEFT 1
+#define MOT_RIGHT 3
+#define BOTH 2
+#define MOT_PWR 40
+
+
+// code to use one optosensor
+int main()
+{
+    int righty=1;
+    int readingL, readingM, readingR;
+    
+    while(!start_button());
+    
+    while(!stop_button())
+    {
+        readingL=analog(STRIP_PORT_LEFT);
+        readingM=analog(STRIP_PORT_MIDDLE);
+        readingR=analog(STRIP_PORT_RIGHT);
+        printf("L=%d M=%d R=%d\n", readingL, readingM, readingR);
+        
+        while(readingL > STRIP_THRESHOLD_LEFT)
+        {
+            motor(MOT_LEFT,MOT_PWR);
+            motor(MOT_RIGHT,-MOT_PWR);
+            readingL=analog(STRIP_PORT_LEFT);
+            readingM=analog(STRIP_PORT_MIDDLE);
+            readingR=analog(STRIP_PORT_RIGHT);
+            printf("L=%d M=%d R=%d\n", readingL, readingM, readingR);
+        }
+        righty=0;
+        
+        while(readingL < STRIP_THRESHOLD_LEFT)
+        {
+            motor(MOT_LEFT,MOT_PWR);
+            motor(MOT_RIGHT,MOT_PWR);
+            readingL=analog(STRIP_PORT_LEFT);
+            readingM=analog(STRIP_PORT_MIDDLE);
+            readingR=analog(STRIP_PORT_RIGHT);
+            printf("L=%d M=%d R=%d\n", readingL, readingM, readingR);
+        }
+        ao();
+        sleep(0.05);
+    }
+    
+}
