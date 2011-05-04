@@ -110,14 +110,71 @@ void drive_straight(int trans) {
         motor(MOTOR_RIGHT, pct * right_mult / 4);
     }
 }
-    
-    
-    
+
+
+
+/**
+ * @brief Get conversion factor for inches -> transitions
+ * @param inches The number of inches to drive
+ *
+ * This equation was determined experimentally.
+ * 
+ * The following data set:
+ *   <pre> {
+ *   (4, 7.484375),
+ *   (5, 6.75),
+ *   (6, 6.34375),
+ *   (7, 6.125),
+ *   (8, 5.90625),
+ *   (10,5.8125),
+ *   (12,5.703125),
+ *   (16,5.5),
+ *   (20,5.3),
+ *   (24,5.203125)
+ *  }</pre>
+ * was approximated by a power regression on a TI-84.
+ */
+float calc_conv_factor(float inches) {
+    return 8.9495 * (inches ^ -0.17896);
+}
+
+
+/**
+ * @brief Drive in a straight line.  Distance in inches.
+ * @param inches The distance to drive.  Negative to go backwards.
+ */ 
+void drive_straight_inches(float inches) {
+    //Numerical factor determined by experimentation.
+    drive_straight((int)(inches * calc_conv_factor(fabs(inches))));
+}
 
 int main() {
+    float disp;
+    float dist;
+    
     for(;;) {
-            printf("Press start\n");
-            press_start();
-        drive_straight(200);
+        disp = -1.;
+        
+        /*
+        while(!start_button()) {
+            FUDGE_FACTOR = 5.5 + (float)(knob()-128)/64.;
+            if(disp != FUDGE_FACTOR) {
+                printf("Fudge: %f\n", FUDGE_FACTOR);
+                disp = FUDGE_FACTOR;
+            }
+        }
+*/
+        
+//        while(start_button());
+        
+        while(!start_button()) {
+            dist = 36. + (float)(knob()-128)/4.;
+            if(disp != dist) {
+                printf("Dist: %f\n", dist);
+                disp = dist;
+            }
+        }
+        
+        drive_straight_inches(-dist);
     }
 }

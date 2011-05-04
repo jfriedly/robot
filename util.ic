@@ -93,3 +93,17 @@ int abs(int x) {
       return x;
 }
 
+
+/**
+ * @brief Floating point absolute value
+ * @param x The number whose absolute value is be found
+ * @return The absolute value of x
+ */
+float fabs(float x) {
+    if(x < 0.0)
+      return -x;
+    else
+      return x;
+}
+
+
