@@ -1,70 +1,123 @@
 #use "util.ic"
 
+#use "sencdr4.icb"
+#use "sencdr6.icb"
+
+#define 
+
 #define MOTOR_LEFT 1
 #define MOTOR_RIGHT 3
-#define SHAFT_LEFT 7
-#define SHAFT_RIGHT 9
 
-#define SLOW_TRANSITION_COUNT 20
+#define SHAFT_LEFT_COUNT encoder4_counts
+#define SHAFT_RIGHT_COUNT encoder6_counts
 
-void go_straight(int transitions) {
-    int left,right;
-    int last_l, last_r;
-    int hi_pow, lo_pow;
-    int l_completion, r_completion;
-    float l_scale, r_scale;
+
+/**
+ * @brief Drive forward or backward in a straight line.  Negative distances are backwards.
+ * @param trans Number of transitions to drive for.
+ * 
+ * The code uses this strategy:
+ *   Step up the motors to full power, over the course of half a second.
+ *   Drive at full power until within a few transitions of the given distance
+ *   Step down the motors, then run slowly to the finish
+ * Throughout the routine, if one tread gets 2 transitions beyond the other, the one in front
+ * is run at 75% of its current power.  This should compensate for uneven distances.
+ */
+void drive_straight(int trans) {
+    // Direction - 1 for forward, 0 for backward
+    int dir;
+    // Percentage of power, for step up/down
+    int pct;
+    // Time to step up/down at
+    long step_time;
+    // Are we stepping up (1) or down (-1), or neither (0)
+    int up_or_down;
+    // Run left or right at reduced power (3) or full power (4)
+    int left_mult, right_mult;
+    //Completion "percentage" (actually per 10000)
+    int left_comp, right_comp;
     
-    left = right = 0;
+    float l_scale = 10000.0 / ((float)trans);
+    float r_scale = 10000.0 / ((float)trans * 1.1);
     
-    l_scale = 10000.0 / ((float)transitions);
-    r_scale = 10000.0 / ((float)transitions * 1.05);
-    
-    while(left<transitions && right<transitions) {
-        if(last_l != digital(SHAFT_LEFT)) {
-            last_l = !last_l;
-            ++left;
-        }
-        if(last_r != digital(SHAFT_RIGHT)) {
-            last_r = !last_r;
-            ++right;
-        }
-        
-        //l_completion/100 = left / (transitions * left_fudge_factor)
-        l_completion = (int)((float)left * l_scale);
-        r_completion = (int)((float)right * r_scale);
-        
-        if(transitions-left <= SLOW_TRANSITION_COUNT || transitions-right <= SLOW_TRANSITION_COUNT) {
-            hi_pow = 60;
-            lo_pow = 40;
-        } else {
-            hi_pow = 100;
-            lo_pow = 80;
-        }
-        
-        if(l_completion - r_completion > 200) {
-            motor(MOTOR_LEFT, lo_pow);
-            motor(MOTOR_RIGHT, hi_pow);
-        } else if(r_completion - l_completion > 200) {
-            motor(MOTOR_LEFT, hi_pow);
-            motor(MOTOR_RIGHT, lo_pow);
-        } else {
-            motor(MOTOR_LEFT, hi_pow);
-            motor(MOTOR_RIGHT, hi_pow);
-        }
-    }
-    ao();
-}
-
-
-int main()
-{
-    printf("Press start\n");
+    if(trans == 0)
+      return;
+    dir = trans/abs(trans);
+    pct = 40;
+    up_or_down = 1;
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    step_time = mseconds() + 100L;
     
     for(;;) {
-        press_start();
+        left_comp = (int)((float)SHAFT_LEFT_COUNT * l_scale);
+        right_comp = (int)((float)SHAFT_RIGHT_COUNT * r_scale);
         
-        go_straight(1000);
+        switch(up_or_down)
+          {
+            case 1:
+              {
+                if(mseconds() >= step_time) {
+                    step_time = mseconds() + 100L;
+                    pct += 20;
+                    if(pct == 100)
+                      up_or_down = 0;
+                }
+                break;
+            }
+            case 0:
+              {
+                if((SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT)/2 >= abs(trans) - 15) {
+                    up_or_down = -1;
+                    step_time = mseconds() + 100L;
+                    pct = 80;
+                }
+                break;
+            }
+            case -1:
+              {
+                if(mseconds() >= step_time) {
+                    step_time = mseconds() + 100L;
+                    pct -= 20;
+                    if(pct == 40)
+                      up_or_down = -2;
+                }
+            }
+            case -2:
+              {
+                if((left_comp + right_comp)/2 >= 100) {
+                    ao();
+                    return;
+                }
+            }
+            default:
+              {
+                ao();
+                return;
+            }
+        }
+        
+        left_mult = right_mult = 4;
+        //A 2% difference
+        if(left_comp > right_comp + 200) {
+            left_mult = 3;
+            printf("L\n");
+        } else if(right_comp > left_comp + 200) {
+            right_mult = 3;
+            printf("R\n");
+        }
+        
+        motor(MOTOR_LEFT, pct * left_mult / 4);
+        motor(MOTOR_RIGHT, pct * right_mult / 4);
     }
-    
 }
+    
+    
+    
 
+int main() {
+    for(;;) {
+            printf("Press start\n");
+            press_start();
+        drive_straight(200);
+    }
+}
