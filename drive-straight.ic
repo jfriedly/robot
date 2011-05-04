@@ -1,0 +1,70 @@
+#use "util.ic"
+
+#define MOTOR_LEFT 1
+#define MOTOR_RIGHT 3
+#define SHAFT_LEFT 7
+#define SHAFT_RIGHT 9
+
+#define SLOW_TRANSITION_COUNT 20
+
+void go_straight(int transitions) {
+    int left,right;
+    int last_l, last_r;
+    int hi_pow, lo_pow;
+    int l_completion, r_completion;
+    float l_scale, r_scale;
+    
+    left = right = 0;
+    
+    l_scale = 10000.0 / ((float)transitions);
+    r_scale = 10000.0 / ((float)transitions * 1.05);
+    
+    while(left<transitions && right<transitions) {
+        if(last_l != digital(SHAFT_LEFT)) {
+            last_l = !last_l;
+            ++left;
+        }
+        if(last_r != digital(SHAFT_RIGHT)) {
+            last_r = !last_r;
+            ++right;
+        }
+        
+        //l_completion/100 = left / (transitions * left_fudge_factor)
+        l_completion = (int)((float)left * l_scale);
+        r_completion = (int)((float)right * r_scale);
+        
+        if(transitions-left <= SLOW_TRANSITION_COUNT || transitions-right <= SLOW_TRANSITION_COUNT) {
+            hi_pow = 60;
+            lo_pow = 40;
+        } else {
+            hi_pow = 100;
+            lo_pow = 80;
+        }
+        
+        if(l_completion - r_completion > 200) {
+            motor(MOTOR_LEFT, lo_pow);
+            motor(MOTOR_RIGHT, hi_pow);
+        } else if(r_completion - l_completion > 200) {
+            motor(MOTOR_LEFT, hi_pow);
+            motor(MOTOR_RIGHT, lo_pow);
+        } else {
+            motor(MOTOR_LEFT, hi_pow);
+            motor(MOTOR_RIGHT, hi_pow);
+        }
+    }
+    ao();
+}
+
+
+int main()
+{
+    printf("Press start\n");
+    
+    for(;;) {
+        press_start();
+        
+        go_straight(1000);
+    }
+    
+}
+

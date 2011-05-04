@@ -197,6 +197,22 @@ void forward_by_knob(void) {
 }
 
 int main() { 
+    int n = 0, d=-1;
+    int last = digital(9);
+    for(;;) {
+        if(digital(9) != last) {
+            ++n;
+            last = !last;
+        }
+        if(stop_button())
+          n = 0;
+        
+        if(n != d) {
+            printf("%d\n", n);
+            d = n;
+        }
+    }
+    
     for(;;) {
         init_log();
         init_bkgd_gps();

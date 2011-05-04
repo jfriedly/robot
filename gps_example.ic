@@ -1,0 +1,38 @@
+//Ryan Hartlage, Pat Wensing 2008-2010
+#use "gps_module.lis"
+
+int main()
+{
+    //GPS region
+    int reg;    
+    
+    //Initialize the GPS module (Requires unplugging of the serial cable)
+    //Select region with knob
+    gps_initialize_knob();
+    
+    beep();
+    
+    /*   Add code to detect the start   */
+    /*   light in place below.          */
+    
+    /*   Begin start light code         */
+    printf("Wait on Start LtPress Start\n");
+    start_press();
+    /*   End start light code           */
+    
+    // Call once match has begun
+    gps_enable();
+    printf("Waiting for GPS data\n");
+    
+    while(1==1)
+      { 
+        //Wait for data
+        while(!gps_get_data());
+        
+        //Beep to let us know that we got new data
+        beep();
+        
+        //Print out gps variables
+        printf("%d %d %d %d %d\n", gps_x, gps_y, gps_heading, gps_button, gps_bin);
+    }
+}
