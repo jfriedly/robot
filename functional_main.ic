@@ -11,6 +11,8 @@
 #use "gps.ic"
 #use "CdS.ic"
 #use "turn.ic"
+#use "drive-straight.ic"
+#use "drive_to_gps.ic"
 
 #define MOTOR_LEFT  1
 #define MOTOR_RIGHT 3
@@ -26,8 +28,6 @@ void calibrate_gps() {
         btn = press_button();
         if(btn == BUTTON_START) {
             gps_print_disable();
-            printf("Done calibrating.  Press start\n");
-            press_start();
             return;
         } else {
             if(facing_north)
@@ -67,14 +67,14 @@ void drive_north(void) {
                 motor(MOTOR_LEFT,  0);
             } else {
                 motor(MOTOR_RIGHT, 100);
-                motor(MOTOR_LEFT, 50);
+                motor(MOTOR_LEFT, 75);
             }
         } else if(robot_heading > 90 + ACCEPTABLE_ANGLE) {
             if(robot_heading > 90 + BIG_ANGLE) {
                 motor(MOTOR_RIGHT,  0);
                 motor(MOTOR_LEFT, 75);
             } else {
-                motor(MOTOR_RIGHT, 50);
+                motor(MOTOR_RIGHT, 75);
                 motor(MOTOR_LEFT, 100);
             }
         } else {
@@ -90,18 +90,20 @@ void drive_north(void) {
 }
 
 
-int main() { 
+void main() { 
+        
     for(;;) {
         init_log();
         init_bkgd_gps();
         
-	calibrate_gps();
-	wait_for_start();
-	drive_north();
+        calibrate_gps();
+        wait_for_start();
+        drive_north();
+        drive_to_gps(-40, 190);
         
         kill_bkgd_gps();
         printf("Halted:         Press START\n");
-	ao();
+        ao();
         press_start();
     }
 }

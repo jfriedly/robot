@@ -18,7 +18,7 @@
 #define CTRCLOCKWISE 1337
 
 void turn_to_angle(int ang) {
-    while(abs(robot_heading - ang) > 10) {
+    while(abs(robot_heading - ang) > 5) {
         log_event(EV_EXTENDED,   ang);
         log_event(EV_EXTENDED+1, robot_heading);
         turn(ang);
@@ -36,7 +36,7 @@ void turn(int ang) {
     
     ang = ang % 360;
     
-//    printf("H%d A%d ", robot_heading, ang);
+    //    printf("H%d A%d ", robot_heading, ang);
     
     // After this line, -359 <= theta <= 359
     theta = ang - robot_heading;
@@ -54,11 +54,11 @@ void turn(int ang) {
     if(theta < -30)
       theta = -30;
     
-//    printf("T%d", theta);
+    //    printf("T%d", theta);
     
     trans_to_turn = (int)(THREE_SIXTY * ((float)theta/360.0));
     
-//    printf("=%d\n", trans_to_turn);
+    //    printf("=%d\n", trans_to_turn);
     
     
     if(trans_to_turn < 0) {
@@ -141,5 +141,6 @@ int main ()
 */
     
     #endif //if 0
+    
     
     

@@ -36,7 +36,7 @@ void go_by_transitions(int target, int motors) {
     else if(motors==CLOCKWISE)
       {
         motor(MOT_LEFT,100);
-         motor(MOT_RIGHT,-100);
+        motor(MOT_RIGHT,-100);
     } else if(motors == BACKWARDS) {
         motor(MOT_LEFT, -100);
         motor(MOT_RIGHT, -100);

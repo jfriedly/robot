@@ -1,0 +1,24 @@
+#use "util.ic"
+#use "turn.ic"
+#use "drive-straight.ic"
+
+
+void drive_to_gps(int x, int y) {
+    int dx, dy;
+    
+    ao();
+    sleep(0.5);
+    
+    while(abs(gps_x - x) > 2 || abs(gps_y - y) > 2) {
+        dx = x - gps_x;
+        dy = y - gps_y;
+        
+        printf("X: %d Y: %d ANG: %d START\n", dx, dy, round(arg((float)dy, (float)dx)));
+        press_start();
+        
+        turn_to_angle(round(arg((float)dx,(float)dy)));
+        
+        drive_straight_inches(4.0*sqrt((float)(dx*dx + dy*dy)));
+    }
+    
+}

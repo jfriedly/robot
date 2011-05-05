@@ -3,8 +3,6 @@
 #use "sencdr4.icb"
 #use "sencdr6.icb"
 
-#define 
-
 #define MOTOR_LEFT 1
 #define MOTOR_RIGHT 3
 
@@ -146,35 +144,4 @@ float calc_conv_factor(float inches) {
 void drive_straight_inches(float inches) {
     //Numerical factor determined by experimentation.
     drive_straight((int)(inches * calc_conv_factor(fabs(inches))));
-}
-
-int main() {
-    float disp;
-    float dist;
-    
-    for(;;) {
-        disp = -1.;
-        
-        /*
-        while(!start_button()) {
-            FUDGE_FACTOR = 5.5 + (float)(knob()-128)/64.;
-            if(disp != FUDGE_FACTOR) {
-                printf("Fudge: %f\n", FUDGE_FACTOR);
-                disp = FUDGE_FACTOR;
-            }
-        }
-*/
-        
-//        while(start_button());
-        
-        while(!start_button()) {
-            dist = 36. + (float)(knob()-128)/4.;
-            if(disp != dist) {
-                printf("Dist: %f\n", dist);
-                disp = dist;
-            }
-        }
-        
-        drive_straight_inches(-dist);
-    }
 }

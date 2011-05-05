@@ -10,6 +10,10 @@
 ///Returned by @ref press_button if the stop button is pressed
 #define BUTTON_STOP 1
 
+#define TWO_PI 6.2831853
+#define PI 3.1415927
+#define HALF_PI 1.5707963
+
 /**
  * @brief Print half a byte (4 bits) in hex.
  * @param b The data to print.  Only the low 4 bits are used.
@@ -106,4 +110,52 @@ float fabs(float x) {
       return x;
 }
 
+float rad_to_deg(float x) {
+    return x * 180.0 / PI;
+}
+
+/**
+ * @brief Argument of a vector (x,y)
+ * @param x The x coordinate of the vector
+ * @param y The y coordinate of the vector
+ * @return The angle of the vector (x,y)
+ */
+float arg(float x, float y) {
+    if(x>0.0) {
+        if(y>=0.0)
+          return rad_to_deg(atan(y/x));
+        else
+          return rad_to_deg(TWO_PI + atan(y/x));    
+    } else if(x<0.0) {
+        return rad_to_deg(PI + atan(y/x));
+    } else {
+        if(y>0.0)
+          return 90.0;
+        else if(y<0.0)
+          return -90.0;
+        else
+        return 0.0 / 0.0;
+    }
+}
+
+/**
+ * @brief Round x to the nearest integer
+ * @param x the number to round
+ * @return x rounded using standard rounding rules (half away from 0)
+ */
+int round(float x) {
+    float rem = x - (float)(int)x;
+    
+    if(x >= 0.0) {
+        if(rem >= 0.5)
+          return (int)x+1;
+        else
+          return (int)x;
+    } else {
+        if(rem <= -0.50)
+          return (int)x-1;
+        else
+          return (int)x;
+    }
+}
 
