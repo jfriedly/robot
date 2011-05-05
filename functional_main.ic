@@ -30,10 +30,7 @@ void calibrate_gps() {
             gps_print_disable();
             return;
         } else {
-            if(facing_north)
-              facing_north = 0;
-            else
-              facing_north = 1;
+            flip_facing_north = 1;
         }
     }
 }
@@ -91,15 +88,15 @@ void drive_north(void) {
 
 
 void main() { 
-        
+   
+    
     for(;;) {
         init_log();
         init_bkgd_gps();
         
         calibrate_gps();
         wait_for_start();
-        drive_north();
-        drive_to_gps(-40, 190);
+        turn_to_angle(225);
         
         kill_bkgd_gps();
         printf("Halted:         Press START\n");

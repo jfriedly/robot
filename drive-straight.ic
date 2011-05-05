@@ -1,13 +1,9 @@
 #use "util.ic"
 
-#use "sencdr4.icb"
-#use "sencdr6.icb"
+#use "encoders.ic"
 
 #define MOTOR_LEFT 1
 #define MOTOR_RIGHT 3
-
-#define SHAFT_LEFT_COUNT encoder4_counts
-#define SHAFT_RIGHT_COUNT encoder6_counts
 
 
 /**
