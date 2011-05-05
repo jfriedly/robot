@@ -1,0 +1,107 @@
+/** 
+ * @file   functional_main.ic
+ * @brief  Main loop
+ * @author Andrew Krieger
+ * @date   4/26/2011
+ *
+ */
+
+#use "log.ic"
+#use "util.ic"
+#use "gps.ic"
+#use "CdS.ic"
+#use "turn.ic"
+
+#define MOTOR_LEFT  1
+#define MOTOR_RIGHT 3
+
+void calibrate_gps() {
+    int btn;
+    
+    printf("START to finish GPS calibrating\n");
+    sleep(0.25);
+    gps_print_enable();
+    
+    for(;;) {
+        btn = press_button();
+        if(btn == BUTTON_START) {
+            gps_print_disable();
+            printf("Done calibrating.  Press start\n");
+            press_start();
+            return;
+        } else {
+            if(facing_north)
+              facing_north = 0;
+            else
+              facing_north = 1;
+        }
+    }
+}
+
+
+#define BIG_ANGLE 15
+#define ACCEPTABLE_ANGLE 5
+//Temporary hack to get up ramp
+void drive_north(void) {
+    
+    gps_y = 0;
+    
+    gps_print_enable();
+    
+    //> 256 is probaby an error - no GPS data; it seems to default to 288
+    while(gps_y < 150 || gps_y > 256) {
+        log_event(0x80, gps_y);
+        //while(gps_time != mseconds())
+        //;
+        
+        if(robot_heading > 180) {
+            printf("PANIC!  Bad hdg %d\n", robot_heading);
+            ao();
+            for(;;)
+              ;
+        }
+        
+        if(robot_heading < 90 - ACCEPTABLE_ANGLE) {
+            if(robot_heading < 90 - BIG_ANGLE) {
+                motor(MOTOR_RIGHT, 75);
+                motor(MOTOR_LEFT,  0);
+            } else {
+                motor(MOTOR_RIGHT, 100);
+                motor(MOTOR_LEFT, 50);
+            }
+        } else if(robot_heading > 90 + ACCEPTABLE_ANGLE) {
+            if(robot_heading > 90 + BIG_ANGLE) {
+                motor(MOTOR_RIGHT,  0);
+                motor(MOTOR_LEFT, 75);
+            } else {
+                motor(MOTOR_RIGHT, 50);
+                motor(MOTOR_LEFT, 100);
+            }
+        } else {
+            motor(MOTOR_RIGHT, 100);
+            motor(MOTOR_LEFT,  100);
+        }
+        
+        sleep(0.1);
+    }                    
+    
+    log_event(0x85, gps_y);
+    gps_print_disable();
+}
+
+
+int main() { 
+    for(;;) {
+        init_log();
+        init_bkgd_gps();
+        
+	calibrate_gps();
+	wait_for_start();
+	drive_north();
+        
+        kill_bkgd_gps();
+        printf("Halted:         Press START\n");
+	ao();
+        press_start();
+    }
+}
