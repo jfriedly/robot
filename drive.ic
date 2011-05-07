@@ -1,0 +1,171 @@
+/**
+ * @file util.ic
+ * @brief Utility functions
+ * @author Andrew Krieger
+ * @date 4/25/2011
+ */
+// <to>Andrew</to>
+// <subject> Comment me statim!!! </subject>
+
+#use "defines.ic"
+#use "util.ic"
+
+
+#define SHINY_TIME 5
+/**
+ * @brief Drive up the hill
+ */
+void drive_up_hill() {
+    //number of cycles for which the tested optosensors are over something shiny
+    int shiny_ctr;
+    
+    printf("Going up hill\n");
+    
+    //Drive across the bumps and up the hill - angle right when off wall
+    motor(MOTOR_LEFT, 100);
+    while(shiny_ctr < SHINY_TIME) {
+        if(digital(FRONT_RIGHT_SWITCH))
+          motor(MOTOR_RIGHT,100);
+        else
+          motor(MOTOR_RIGHT, 60);
+        
+        if(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD && analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) {
+            ++shiny_ctr;
+        } else {
+            shiny_ctr = 0;
+        }
+    }
+    
+    printf("Front on shiny\n");
+    //Go straight (ish) until the front sensors are off the shiny
+    motor(MOTOR_RIGHT, 100);
+    while(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD || analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD)
+      ;
+    
+    printf("Looking for back\n");
+    //Go straight (ish) until the rear optos are on the shiny
+    shiny_ctr = 0;
+    while(shiny_ctr < SHINY_TIME) {
+        if(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) {
+            ++shiny_ctr;
+        } else {
+            shiny_ctr = 0;
+        }
+    }
+    
+    //Stop
+    ao();    
+}
+
+void step_striaght_back(void) {
+    if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
+        motor(MOTOR_LEFT,  -50);
+        motor(MOTOR_RIGHT, -100);
+    } else if(SHAFT_LEFT_COUNT < SHAFT_RIGHT_COUNT) {
+        motor(MOTOR_LEFT, -100);
+        motor(MOTOR_RIGHT, -50);
+    } else {
+        motor(MOTOR_LEFT,  -100);
+        motor(MOTOR_RIGHT, -100);
+    }
+}
+
+void drive_back_to_shiny(void) {
+    int shiny_ctr = 0;
+    int high_water = 0;
+    
+    printf("Where's the shiny?\n");
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    while(shiny_ctr < SHINY_TIME && !stop_button()) {
+        if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
+            ++shiny_ctr;
+            if(shiny_ctr > high_water)
+              high_water = shiny_ctr;
+        } else {
+            shiny_ctr = 0;
+        }
+        
+        step_striaght_back();
+    }
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
+      step_striaght_back();
+    
+    ao();
+    printf("High water: %d\n", high_water);
+}
+
+/**
+ * @brief Align self with metal strip
+ */
+void drive_strip() {
+    while(!stop_button()) {
+        int i;
+        
+        for(i=2;i<7;++i) {
+            printf("%d",i);
+            print_hex_byte(analog(i));
+            printf(" ");
+        }
+        
+        printf("\n");
+        sleep(0.1);
+    }
+}
+
+void turn(float deg) {
+    if(deg > 0.0) {
+        while(deg > 45.0) {
+            ccw_degrees(45.0);
+            deg -= 45.0;
+        }
+        
+        ccw_degrees(deg);
+    } else if(deg < 0.0) {
+        while(deg < -45.0) {
+            cw_degrees(45.0);
+            deg += 45.0;
+        }
+        
+        cw_degrees(-deg);
+    }
+}
+
+///Helper function
+void ccw_degrees(float deg) {
+    int left_trans = round(deg * (70.0 / 360.0));
+    int right_trans = round(deg * (124.0 / 360.0));
+    
+    printf("Turning %f deg\n", deg);
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    motor(MOTOR_LEFT, -100);
+    motor(MOTOR_RIGHT, 100);
+    
+    while(((right_trans - SHAFT_RIGHT_COUNT) + (left_trans - SHAFT_LEFT_COUNT))/2 > 0)
+      ;
+    
+    ao();
+}
+
+///Helper function
+void cw_degrees(float deg) {
+    int left_trans = round(deg * (106.0 / 360.0));
+    int right_trans = round(deg * (95.0 / 360.0));
+    
+    printf("Turning %f deg\n", deg);
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    motor(MOTOR_LEFT,  100);
+    motor(MOTOR_RIGHT,-100);
+    
+    while(((right_trans - SHAFT_RIGHT_COUNT) + (left_trans - SHAFT_LEFT_COUNT))/2 > 0)
+      ;
+    
+    ao();
+}

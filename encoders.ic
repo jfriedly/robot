@@ -1,0 +1,27 @@
+int encdr10_state = 0;
+int encdr12_state = 0;
+
+int encoder10_counts = 0;
+int encoder12_counts = 0;
+
+#define SHAFT_LEFT_COUNT encoder10_counts
+#define SHAFT_RIGHT_COUNT encoder12_counts
+
+int ctr=0;
+
+///substitute for FEH shaft encodr assembly
+void temp_shaft_encdr(void) {
+    for(;;){        
+        if(encdr10_state ^ digital(10)) {
+            ++encoder10_counts;
+            encdr10_state = !encdr10_state;
+        }
+        
+        if(encdr12_state ^ digital(12)) {
+            ++encoder12_counts;
+            encdr12_state = !encdr12_state;
+        }
+        
+        defer();
+    }
+}

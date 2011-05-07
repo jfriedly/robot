@@ -1,15 +1,9 @@
 #use "util.ic"
 
-#use "sencdr4.icb"
-#use "sencdr6.icb"
-
-#define 
+#use "encoders.ic"
 
 #define MOTOR_LEFT 1
 #define MOTOR_RIGHT 3
-
-#define SHAFT_LEFT_COUNT encoder4_counts
-#define SHAFT_RIGHT_COUNT encoder6_counts
 
 
 /**
@@ -31,20 +25,20 @@ void drive_straight(int trans) {
     // Time to step up/down at
     long step_time;
     // Are we stepping up (1) or down (-1), or neither (0)
-    int up_or_down;
+    int state;
     // Run left or right at reduced power (3) or full power (4)
     int left_mult, right_mult;
     //Completion "percentage" (actually per 10000)
     int left_comp, right_comp;
     
     float l_scale = 10000.0 / ((float)trans);
-    float r_scale = 10000.0 / ((float)trans * 1.1);
+    float r_scale = 10000.0 / ((float)trans);
     
     if(trans == 0)
       return;
     dir = trans/abs(trans);
     pct = 40;
-    up_or_down = 1;
+    state =0;
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     step_time = mseconds() + 100L;
     
@@ -52,37 +46,37 @@ void drive_straight(int trans) {
         left_comp = (int)((float)SHAFT_LEFT_COUNT * l_scale);
         right_comp = (int)((float)SHAFT_RIGHT_COUNT * r_scale);
         
-        switch(up_or_down)
+        switch(state)
           {
-            case 1:
+            case 0:
               {
                 if(mseconds() >= step_time) {
                     step_time = mseconds() + 100L;
                     pct += 20;
                     if(pct == 100)
-                      up_or_down = 0;
+                      state = 1;
                 }
                 break;
             }
-            case 0:
+            case 1:
               {
                 if((SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT)/2 >= abs(trans) - 15) {
-                    up_or_down = -1;
+                    state = 2;
                     step_time = mseconds() + 100L;
                     pct = 80;
                 }
                 break;
             }
-            case -1:
+            case 2:
               {
                 if(mseconds() >= step_time) {
                     step_time = mseconds() + 100L;
                     pct -= 20;
                     if(pct == 40)
-                      up_or_down = -2;
+                      state = 3;
                 }
             }
-            case -2:
+            case 3:
               {
                 if((left_comp + right_comp)/2 >= 100) {
                     ao();
@@ -106,8 +100,8 @@ void drive_straight(int trans) {
             printf("R\n");
         }
         
-        motor(MOTOR_LEFT, pct * left_mult / 4);
-        motor(MOTOR_RIGHT, pct * right_mult / 4);
+        motor(MOTOR_LEFT, dir * pct * left_mult / 4);
+        motor(MOTOR_RIGHT, dir * pct * right_mult / 4);
     }
 }
 
@@ -133,9 +127,16 @@ void drive_straight(int trans) {
  *   (24,5.203125)
  *  }</pre>
  * was approximated by a power regression on a TI-84.
+ * At 3:00AM, we tried again.  Now it was undershooting.  A linear regression
+ * inspired us to compose a linear function of one real variable with the previous
+ * power function.
  */
 float calc_conv_factor(float inches) {
-    return 8.9495 * (inches ^ -0.17896);
+    //return 6.0;
+    float x;
+    x = (8.9495 * (inches ^ -0.17896)) * 1.17010+ 0.63118;
+    x= 0.002599 * x * x + 0.710097 * x + 0.53677;
+    return x * 1.1;
 }
 
 
@@ -148,24 +149,18 @@ void drive_straight_inches(float inches) {
     drive_straight((int)(inches * calc_conv_factor(fabs(inches))));
 }
 
+// Fairly consistent average at 110 transitions per 2*pi.
+// Right tread was ~80 trans behind left at three circles.  Maybe batteries, maybe rubber, maybe cosmic rays.
+// Stupid real world messing with mah codez.
+
 int main() {
     float disp;
     float dist;
     
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
     for(;;) {
         disp = -1.;
-        
-        /*
-        while(!start_button()) {
-            FUDGE_FACTOR = 5.5 + (float)(knob()-128)/64.;
-            if(disp != FUDGE_FACTOR) {
-                printf("Fudge: %f\n", FUDGE_FACTOR);
-                disp = FUDGE_FACTOR;
-            }
-        }
-*/
-        
-//        while(start_button());
         
         while(!start_button()) {
             dist = 36. + (float)(knob()-128)/4.;
@@ -175,6 +170,6 @@ int main() {
             }
         }
         
-        drive_straight_inches(-dist);
+        drive_straight_inches(dist);
     }
 }

@@ -107,3 +107,23 @@ float fabs(float x) {
 }
 
 
+/**
+ * @brief Round x to the nearest integer
+ * @param x the number to round
+ * @return x rounded using standard rounding rules (half away from 0)
+ */
+int round(float x) {
+    float rem = x - (float)(int)x;
+    
+    if(x >= 0.0) {
+        if(rem >= 0.5)
+          return (int)x+1;
+        else
+          return (int)x;
+    } else {
+        if(rem <= -0.50)
+          return (int)x-1;
+        else
+          return (int)x;
+    }
+}

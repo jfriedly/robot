@@ -1,3 +1,74 @@
+#use "gps_module.ic"
+#use "gps_module.icb"
+
+void memset(int arr[], int val, int len) {
+    for(--len; len>0; --len)
+      arr[len] = val;
+}
+
+
+#define DEBOUNCES 3
+
+void gps_update() {
+    int heading[DEBOUNCES];
+    int 
+    
+    memset(heading, -1, 5);
+    
+    for(;;) {
+        heading[
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if 0
+
 /**
  * @file   gps.ic
  * @brief  GPS heading - 360 degree version
@@ -110,3 +181,5 @@ void gps_print_enable(void) {
 void gps_print_disable(void) {
     gps_print = 0;
 }
+
+#endif

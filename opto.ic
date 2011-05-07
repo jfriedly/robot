@@ -1,4 +1,5 @@
 #use "util.ic"
+#use "defines.ic"
 
 #define OPTO_PORT 7
 #define CLOCKWISE 8675309
@@ -18,9 +19,7 @@ void go_by_transitions(int target, int motors) {
     
     //    printf("Driving\n");
     
-    // Get an initial value for last
-    // This is used to track changes in the optosensor input
-    last = digital(OPTO_PORT);
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
     // If-else tree to decide which motor to use. Did not use switch-case because Handy Board doesn't like that much.
     if(motors==BOTH)
@@ -36,20 +35,15 @@ void go_by_transitions(int target, int motors) {
     else if(motors==CLOCKWISE)
       {
         motor(MOT_LEFT,100);
-         motor(MOT_RIGHT,-100);
+        motor(MOT_RIGHT,-100);
     } else if(motors == BACKWARDS) {
         motor(MOT_LEFT, -100);
         motor(MOT_RIGHT, -100);
     }
     
-    // The while loop takes continuous digital readings until it sees a change, then the for loop reverses what the while loop looks for. The for loop only runs as many times as needed though.
-    //    printf("0\n");
-    for(n=0;n<target;++n) {
-        while(digital(OPTO_PORT) == last)
-          ;
-        last = !last;
-        //        printf("%d\n", n);
-    }
+    
+    while(SHAFT_LEFT_COUNT < target)
+      ;
     
     // Turn everything off.
     ao();
