@@ -86,7 +86,7 @@ int robot_heading = 90;
 long gps_time;
 //Are we facing north?
 int facing_north = 1;
-
+int flip_facing_north = 0;
 int gps_print = 0;
 
 int theta;
@@ -114,11 +114,8 @@ int update_heading(void) {
         if(!facing_north)
           robot_heading += 180;
         
-        //See if we changed suddenly.  If our heading changed by > 45 degrees, assume it rolled around
-        //Unless gps_heading is exactly 0 (error with GPS)
-        //If the GPS reports 0, the robot_heading is 90 or 270, so we didn't really switch headings.
-        
-        if(abs(robot_heading - last_heading) > 45 && gps_heading != 0) {
+        // PARENTHESES HERE?
+        if(flip_facing_north || abs(robot_heading - last_heading) > 45)  {
             if(facing_north) {
                 facing_north = 0;
                 robot_heading += 180;
@@ -126,6 +123,7 @@ int update_heading(void) {
                 facing_north = 1;
                 robot_heading -= 180;
             }
+            flip_facing_north = 0;
         } 
         
         if(gps_print)

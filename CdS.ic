@@ -22,6 +22,13 @@
  */
 void wait_for_start(void) {
     printf("  Waiting for     start light\n");
-    while(analog(CDS_PORT) > 30)
-      ;
+    for(;;) {
+        if(digital(CDS_PORT) > 30)
+          return;
+        if(start_button()) {
+            while(start_button())
+              ;
+            return;
+        }
+    }
 }
