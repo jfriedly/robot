@@ -1,0 +1,148 @@
+#use "defines.ic"
+#use "util.ic"
+
+//Use bitmasks to make it easier to read the sensors
+#define BACK_LEFT_BIT   0
+#define BACK_RIGHT_BIT  1
+#define FRONT_LEFT_BIT  2
+#define FRONT_RIGHT_BIT 3
+
+#define BACK_LEFT_MASK   (1<<BACK_LEFT_BIT)
+#define BACK_RIGHT_MASK  (1<<BACK_RIGHT_BIT)
+#define FRONT_LEFT_MASK  (1<<FRONT_LEFT_BIT)
+#define FRONT_RIGHT_MASK (1<<FRONT_RIGHT_BIT)
+
+
+///Check both front optosensors
+int opto_mask_front() {
+    return ((analog(OPTO_FRONT_LEFT)  < OPTO_THRESHOLD) <<  FRONT_LEFT_BIT)
+      |    ((analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) << FRONT_RIGHT_BIT);
+}
+
+///Check both rear optosensors
+int opto_mask_back() {
+    return ((analog(OPTO_BACK_LEFT)   < OPTO_THRESHOLD) <<   BACK_LEFT_BIT)
+      |    ((analog(OPTO_BACK_RIGHT)  < OPTO_THRESHOLD) <<  BACK_RIGHT_BIT);
+}
+
+///Check all optosensors
+int opto_mask_all() {
+    return opto_mask_front() | opto_mask_back();
+}
+
+/**
+ * @brief Line up with the metal strip
+ *
+ * This is meant to be used to align with the wagon.  Put the front optos just off of the metal strip,
+ * so that if the robot drove forward, it would be over the strip.  Call this function, and it should
+ * align with the strip.
+ * Problems: (1) You have to be ~4-5 inches from the edge of the strip, or the robot will drive off
+ * and get lost.  (2) Doesn't always end with both pairs of sensors straddling the boundary of the strip
+ */
+void align_back_cw(void) {
+    int mask, last;
+    printf("Align back cw\n");
+    
+    for(;;) {
+        mask = opto_mask_all();
+        
+//        if(mask != last) {
+//            ao();
+//            printf("Switching to %d  ", mask);
+//            print_hex_byte(analog(OPTO_BACK_LEFT)); printf(" ");
+//            print_hex_byte(analog(OPTO_BACK_RIGHT)); printf(" ");
+//            print_hex_byte(analog(OPTO_FRONT_LEFT)); printf(" ");
+//            print_hex_byte(analog(OPTO_FRONT_RIGHT)); printf(" ");
+//            printf("\n");
+//            sleep(0.1);
+//            last = mask;
+ //       }
+        
+        if(mask & BACK_RIGHT_MASK) {
+            ao();
+            return;
+        }
+        
+        if(mask & FRONT_RIGHT_MASK ) { //Probably both are on strip; just right is unexpected
+            motor(MOTOR_LEFT,  100);
+            motor(MOTOR_RIGHT, -100);
+        } else if(mask & FRONT_LEFT_MASK) {
+            motor(MOTOR_LEFT, 100);
+            motor(MOTOR_RIGHT, 100);
+        } else { //No optos on strip - bad
+            motor(MOTOR_LEFT, -100);
+            motor(MOTOR_RIGHT, 100);
+        }
+     
+    }
+}
+
+// Precondition: Front sensors straddling boundary
+// Precondition: Back right sensor on line
+
+// This still needs work.  Maybe just try using 1 optosensor code for Monday?
+
+void follow_strip_back(void) {
+    int front, back;
+    int done;
+    long t;
+    
+    printf("Follow strip back\n");
+    for(;;) {
+        front = opto_mask_front();
+        back  = opto_mask_back();
+        
+        printf("%d %d\n", front, back);
+//        sleep(1.0);
+        if(!(back & BACK_LEFT_MASK )) {
+            ao();
+            done = 1;
+            t = mseconds()+200L;
+            while(mseconds() < t) {
+                if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD)
+                  done = 0;
+            }
+            if(done)
+              return;
+        }
+        
+        if(back & BACK_RIGHT_MASK) {
+            if(front == FRONT_LEFT_MASK) {
+                motor(MOTOR_LEFT, -100);
+                motor(MOTOR_RIGHT, -0);
+            } else if(front == (FRONT_LEFT_MASK | FRONT_RIGHT_MASK)) {
+                printf("Lazy programmer did not finish\n");
+                ao();
+                for(;;)
+                  ;
+            } else if(front == 0) {
+                motor(MOTOR_LEFT,   100);
+                motor(MOTOR_RIGHT, -100);
+            } else {
+                //This should not happen.
+                printf("Weird case 2\n");
+                for(;;)
+                  ;
+            }
+        } else {
+            if(front == FRONT_LEFT_MASK) {
+                motor(MOTOR_LEFT,   -0);
+                motor(MOTOR_RIGHT, -100);
+            } else if(front == (FRONT_LEFT_MASK | FRONT_RIGHT_MASK)) {
+                motor(MOTOR_LEFT, 100);
+                motor(MOTOR_RIGHT, -100);
+            } else if(front == 0) {
+                motor(MOTOR_LEFT,  -100);
+                motor(MOTOR_RIGHT, -100);
+            } else {
+                //This should not happen.
+                printf("Weird case 2\n");
+                for(;;)
+                  ;
+            }
+        }
+        
+//        sleep(0.05);
+//        ao();
+    }
+}
