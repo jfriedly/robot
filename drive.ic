@@ -26,20 +26,20 @@ void drive_up_hill() {
     //Drive across the bumps and up the hill - angle right when off wall
     motor(MOTOR_LEFT, 100);
     while(shiny_ctr < SHINY_TIME) {
-      //If the switch is pressed, go straight.  Otherwise angle right.
+        //If the switch is pressed, go straight.  Otherwise angle right.
         if(digital(FRONT_RIGHT_SWITCH))
           motor(MOTOR_RIGHT,100);
         else
           motor(MOTOR_RIGHT, 60);
         
-	//Check the optos
+        //Check the optos
         if(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD && analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
             shiny_ctr = 0;
         }
     }
-
+    
     printf("Front on shiny\n");
     //Go straight (ish) until the front sensors are off the shiny
     motor(MOTOR_RIGHT, 100);
@@ -95,9 +95,22 @@ void drive_back_to_shiny(void) {
         step_straight_back();
     }
     
+    //Continue until the back optos are off of the shiny
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
       step_straight_back();
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    shiny_ctr = 0;
+    while(shiny_ctr < SHINY_TIME && !stop_button()) {
+        if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
+            ++shiny_ctr;
+        } else {
+            shiny_ctr = 0;
+        }
+        
+        step_straight_back();
+    }
     
     ao();
 }
