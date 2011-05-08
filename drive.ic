@@ -4,19 +4,21 @@
  * @author Andrew Krieger
  * @date 4/25/2011
  */
-// <to>Andrew</to>
-// <subject> Comment me statim!!! </subject>
 
 #use "defines.ic"
 #use "util.ic"
 
 
+/// Wait for this many loops to confirm we're over something shiny (ie, aluminum strips)
 #define SHINY_TIME 5
+
 /**
  * @brief Drive up the hill
  */
 void drive_up_hill() {
     //number of cycles for which the tested optosensors are over something shiny
+    //The sensors will occasionally return low numbers when over a screw in the course
+    // And sometimes
     int shiny_ctr;
     
     printf("Going up hill\n");
@@ -24,18 +26,20 @@ void drive_up_hill() {
     //Drive across the bumps and up the hill - angle right when off wall
     motor(MOTOR_LEFT, 100);
     while(shiny_ctr < SHINY_TIME) {
+      //If the switch is pressed, go straight.  Otherwise angle right.
         if(digital(FRONT_RIGHT_SWITCH))
           motor(MOTOR_RIGHT,100);
         else
           motor(MOTOR_RIGHT, 60);
         
+	//Check the optos
         if(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD && analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
             shiny_ctr = 0;
         }
     }
-    
+
     printf("Front on shiny\n");
     //Go straight (ish) until the front sensors are off the shiny
     motor(MOTOR_RIGHT, 100);
@@ -57,6 +61,8 @@ void drive_up_hill() {
     ao();    
 }
 
+//Call this in a loop to drive straight backwards using the optos.
+//Note: reset SHAFT_*_COUNT to zero first
 void step_striaght_back(void) {
     if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
         motor(MOTOR_LEFT,  -50);
@@ -70,6 +76,7 @@ void step_striaght_back(void) {
     }
 }
 
+//Drive backwards until we hit a metal strip.  Stop with the back optos just past it.
 void drive_back_to_shiny(void) {
     int shiny_ctr = 0;
     int high_water = 0;
@@ -81,8 +88,6 @@ void drive_back_to_shiny(void) {
     while(shiny_ctr < SHINY_TIME && !stop_button()) {
         if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
-            if(shiny_ctr > high_water)
-              high_water = shiny_ctr;
         } else {
             shiny_ctr = 0;
         }
@@ -95,11 +100,11 @@ void drive_back_to_shiny(void) {
       step_striaght_back();
     
     ao();
-    printf("High water: %d\n", high_water);
 }
 
 /**
  * @brief Align self with metal strip
+ * Not currently used.
  */
 void drive_strip() {
     while(!stop_button()) {
@@ -116,6 +121,12 @@ void drive_strip() {
     }
 }
 
+/**
+ * @brief Turn by deg, relative to current position
+ * @param deg Degrees to turn.  Positive is CCW, negative is CW.
+ *
+ * This will repeatedly call [c]cw_degrees to turn.
+ */
 void turn(float deg) {
     if(deg > 0.0) {
         while(deg > 45.0) {
@@ -134,7 +145,7 @@ void turn(float deg) {
     }
 }
 
-///Helper function
+///Helper function - best only for small angles (< 45 degrees)
 void ccw_degrees(float deg) {
     int left_trans = round(deg * (70.0 / 360.0));
     int right_trans = round(deg * (124.0 / 360.0));
@@ -152,7 +163,7 @@ void ccw_degrees(float deg) {
     ao();
 }
 
-///Helper function
+///Helper function - best only for small angles (<45 degrees)
 void cw_degrees(float deg) {
     int left_trans = round(deg * (106.0 / 360.0));
     int right_trans = round(deg * (95.0 / 360.0));
