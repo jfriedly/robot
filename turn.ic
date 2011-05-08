@@ -1,0 +1,153 @@
+/*
+ * Turning code, version 1.0
+ * By Joel Friedly
+ * 26 Apr 2011
+ *
+ * The following functions live in this file:
+ * void turn(bool north, int degree) - turn to new heading [degree]
+ */
+#use "gps.ic"
+#use "util.ic"
+#use "log.ic"
+#use "encoders.ic"
+
+
+#define MOTOR_LEFT 1
+#define MOTOR_RIGHT 3
+#define REV_TIME 3865.0
+#define DEGREE_TIME (REV_TIME / 360.0)
+#define CLOCKWISE 8675309
+#define CTRCLOCKWISE 1337
+
+//global variable to keep track of what direction we're turning
+int ccw;
+
+void turn_to_angle(int ang) {
+    while(abs(robot_heading - ang) > 5) {
+        get_new_heading();
+        turn(ang);
+    }
+}
+
+void turn(int ang) {
+    int ms_to_turn;
+    
+    ao();
+    
+    gps_print_disable();
+    
+    ang = ang % 360;
+    
+    printf("H%d A%d ", robot_heading, ang);
+    
+    // After this line, -359 <= theta <= 359
+    theta = ang - robot_heading;
+    
+    // Are we turning CCW?/*
+ * Turning code, version 1.0
+ * By Joel Friedly
+ * 26 Apr 2011
+ *
+ * The following functions live in this file:
+ * void turn(bool north, int degree) - turn to new heading [degree]
+ */
+#use "gps.ic"
+#use "util.ic"
+#use "log.ic"
+#use "encoders.ic"
+
+
+#define MOTOR_LEFT 1
+#define MOTOR_RIGHT 3
+#define REV_TIME 3865.0
+#define DEGREE_TIME (REV_TIME / 360.0)
+#define CLOCKWISE 8675309
+#define CTRCLOCKWISE 1337
+
+//global variable to keep track of what direction we're turning
+int ccw;
+
+void turn_to_angle(int ang) {
+    while(abs(robot_heading - ang) > 5) {
+        get_new_heading();
+        turn(ang);
+    }
+}
+
+void turn(int ang) {
+    int ms_to_turn;
+    
+    ao();
+    
+    gps_print_disable();
+    
+    ang = ang % 360;
+    
+    printf("H%d A%d ", robot_heading, ang);
+    
+    // After this line, -359 <= theta <= 359
+    theta = ang - robot_heading;
+    
+    // Are we turning CCW?
+    ccw = (theta >= 180 || (-180 < theta && theta < 0));
+    
+    //Clamp theta to (-180, 180)
+    theta = theta % 180;
+    if(ccw)
+      theta -= 180;
+    
+    if(theta > 30)
+      theta = 30;
+    if(theta < -30)
+      theta = -30;
+    
+    printf("T%d", theta);
+    
+    ms_to_turn = (int)((float)abs(theta) * DEGREE_TIME);
+    
+    printf("=%d GOING\n", ms_to_turn);
+// press_start();
+    
+    if(theta > 0) {
+        motor(MOTOR_RIGHT, 100);
+        motor(MOTOR_LEFT, -100);
+    } else {
+        motor(MOTOR_RIGHT, -100);
+        motor(MOTOR_LEFT, 100);
+    }
+    
+    msleep((long)ms_to_turn);
+    ao();
+   
+}
+    ccw = (theta >= 180 || (-180 < theta && theta < 0));
+    
+    //Clamp theta to (-180, 180)
+    theta = theta % 180;
+    if(ccw)
+      theta -= 180;
+    
+    if(theta > 30)
+      theta = 30;
+    if(theta < -30)
+      theta = -30;
+    
+    printf("T%d", theta);
+    
+    ms_to_turn = (int)((float)abs(theta) * DEGREE_TIME);
+    
+    printf("=%d GOING\n", ms_to_turn);
+// press_start();
+    
+    if(theta > 0) {
+        motor(MOTOR_RIGHT, 100);
+        motor(MOTOR_LEFT, -100);
+    } else {
+        motor(MOTOR_RIGHT, -100);
+        motor(MOTOR_LEFT, 100);
+    }
+    
+    msleep((long)ms_to_turn);
+    ao();
+   
+}

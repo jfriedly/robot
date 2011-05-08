@@ -63,7 +63,7 @@ void drive_up_hill() {
 
 //Call this in a loop to drive straight backwards using the optos.
 //Note: reset SHAFT_*_COUNT to zero first
-void step_striaght_back(void) {
+void step_straight_back(void) {
     if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
         motor(MOTOR_LEFT,  -50);
         motor(MOTOR_RIGHT, -100);
@@ -92,12 +92,12 @@ void drive_back_to_shiny(void) {
             shiny_ctr = 0;
         }
         
-        step_striaght_back();
+        step_straight_back();
     }
     
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
-      step_striaght_back();
+      step_straight_back();
     
     ao();
 }
