@@ -1,5 +1,6 @@
 #use "defines.ic"
 #use "util.ic"
+#use "drive.ic"
 
 //Use bitmasks to make it easier to read the sensors
 #define BACK_LEFT_BIT   0
@@ -36,7 +37,7 @@ int opto_mask_all() {
  * This is meant to be used to align with the wagon.  Put the front optos just off of the metal strip,
  * so that if the robot drove forward, it would be over the strip.  Call this function, and it should
  * align with the strip.
- * Problems: (1) You have to be ~4-5 inches from the edge of the strip, or the robot will drive off
+ * Problems: (1) You have to be ~4-5 inches from the end of the strip, or the robot will drive off
  * and get lost.  (2) Doesn't always end with both pairs of sensors straddling the boundary of the strip
  */
 void align_back_cw(void) {
@@ -46,17 +47,17 @@ void align_back_cw(void) {
     for(;;) {
         mask = opto_mask_all();
         
-//        if(mask != last) {
-//            ao();
-//            printf("Switching to %d  ", mask);
-//            print_hex_byte(analog(OPTO_BACK_LEFT)); printf(" ");
-//            print_hex_byte(analog(OPTO_BACK_RIGHT)); printf(" ");
-//            print_hex_byte(analog(OPTO_FRONT_LEFT)); printf(" ");
-//            print_hex_byte(analog(OPTO_FRONT_RIGHT)); printf(" ");
-//            printf("\n");
-//            sleep(0.1);
-//            last = mask;
- //       }
+        //        if(mask != last) {
+        //            ao();
+        //            printf("Switching to %d  ", mask);
+        //            print_hex_byte(analog(OPTO_BACK_LEFT)); printf(" ");
+        //            print_hex_byte(analog(OPTO_BACK_RIGHT)); printf(" ");
+        //            print_hex_byte(analog(OPTO_FRONT_LEFT)); printf(" ");
+        //            print_hex_byte(analog(OPTO_FRONT_RIGHT)); printf(" ");
+        //            printf("\n");
+        //            sleep(0.1);
+        //            last = mask;
+        //       }
         
         if(mask & BACK_RIGHT_MASK) {
             ao();
@@ -69,11 +70,18 @@ void align_back_cw(void) {
         } else if(mask & FRONT_LEFT_MASK) {
             motor(MOTOR_LEFT, 100);
             motor(MOTOR_RIGHT, 100);
-        } else { //No optos on strip - bad
+        } else { //No optos on strip - bad - try to go find the strip again
             motor(MOTOR_LEFT, -100);
             motor(MOTOR_RIGHT, 100);
+            /*
+            SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+            while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 20)
+              step_straight_back();
+            turn(30.0);
+            drive_forward_to_shiny();
+*/
         }
-     
+        
     }
 }
 
@@ -82,67 +90,67 @@ void align_back_cw(void) {
 
 // This still needs work.  Maybe just try using 1 optosensor code for Monday?
 
+void step_treads(int left, int right) {
+    int left_dir = 80, right_dir = 80;
+    
+    if(left < 0)
+      left_dir = -80;
+    if(right < 0)
+      right_dir = -80;
+    
+    left = abs(left);
+    right = abs(right);
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    while(SHAFT_LEFT_COUNT < left || SHAFT_RIGHT_COUNT < right) {
+        if(SHAFT_LEFT_COUNT < left)
+          motor(MOTOR_LEFT, left_dir);
+        else
+          motor(MOTOR_LEFT, 0);
+        
+        if(SHAFT_RIGHT_COUNT < right)
+          motor(MOTOR_RIGHT, right_dir);
+        else
+          motor(MOTOR_RIGHT, 0);
+    }
+    
+    ao();
+    //be nice to the motors
+    sleep(0.1);
+}
+
 void follow_strip_back(void) {
-    int front, back;
-    int done;
-    long t;
+    int mask;
+    
+    /*
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    reset_system_time();
+    while((SHAFT_LEFT_COUNT < 70 || SHAFT_RIGHT_COUNT < 70) && mseconds() < 8000L)
+      step_straight_back(2);
+    
+    ao();
+    sleep(0.1);
+    
+    return;
+    */
+    
     
     printf("Follow strip back\n");
     for(;;) {
-        front = opto_mask_front();
-        back  = opto_mask_back();
+        mask = opto_mask_all();
         
-        printf("%d %d\n", front, back);
-//        sleep(1.0);
-        if(!(back & BACK_LEFT_MASK )) {
+        if(!(mask & BACK_LEFT_MASK)) {
             ao();
-            done = 1;
-            t = mseconds()+200L;
-            while(mseconds() < t) {
-                if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD)
-                  done = 0;
-            }
-            if(done)
-              return;
+            printf("Done following line\n");
+            return;
         }
         
-        if(back & BACK_RIGHT_MASK) {
-            if(front == FRONT_LEFT_MASK) {
-                motor(MOTOR_LEFT, -100);
-                motor(MOTOR_RIGHT, -0);
-            } else if(front == (FRONT_LEFT_MASK | FRONT_RIGHT_MASK)) {
-                printf("Lazy programmer did not finish\n");
-                ao();
-                for(;;)
-                  ;
-            } else if(front == 0) {
-                motor(MOTOR_LEFT,   100);
-                motor(MOTOR_RIGHT, -100);
-            } else {
-                //This should not happen.
-                printf("Weird case 2\n");
-                for(;;)
-                  ;
-            }
-        } else {
-            if(front == FRONT_LEFT_MASK) {
-                motor(MOTOR_LEFT,   -0);
-                motor(MOTOR_RIGHT, -100);
-            } else if(front == (FRONT_LEFT_MASK | FRONT_RIGHT_MASK)) {
-                motor(MOTOR_LEFT, 100);
-                motor(MOTOR_RIGHT, -100);
-            } else if(front == 0) {
-                motor(MOTOR_LEFT,  -100);
-                motor(MOTOR_RIGHT, -100);
-            } else {
-                //This should not happen.
-                printf("Weird case 2\n");
-                for(;;)
-                  ;
-            }
-        }
-        
-//        sleep(0.05);
-//        ao();
+        if(mask & BACK_RIGHT_MASK)
+          step_treads(-2, 0);
+        else
+          step_treads(0, -2);
     }
 }
+

@@ -153,6 +153,7 @@ void drive_straight_inches(float inches) {
 // Right tread was ~80 trans behind left at three circles.  Maybe batteries, maybe rubber, maybe cosmic rays.
 // Stupid real world messing with mah codez.
 
+/*
 int main() {
     float disp;
     float dist;
@@ -173,3 +174,4 @@ int main() {
         drive_straight_inches(dist);
     }
 }
+*/

@@ -6,9 +6,12 @@
 #define OPTO_BACK_LEFT   3
 #define OPTO_BACK_RIGHT  2
 
+#define CDS_CELL 16
+
 #define FRONT_RIGHT_SWITCH 15
 
 
 #define OPTO_THRESHOLD 30
+#define CDS_THRESHOLD 30
 
 #use "encoders.ic"

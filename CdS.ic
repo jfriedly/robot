@@ -9,9 +9,7 @@
 
 
 #use "util.ic"
-
-///Where the CdS cell lives
-#define CDS_PORT 2
+#use "defines.ic"
 
 /**
  * @brief Block until the CdS detects light
@@ -23,12 +21,14 @@
 void wait_for_start(void) {
     printf("  Waiting for     start light\n");
     for(;;) {
-        if(digital(CDS_PORT) > 30)
+        printf("%d\n", analog(CDS_CELL));
+        if(analog(CDS_CELL) < CDS_THRESHOLD)
           return;
         if(start_button()) {
             while(start_button())
               ;
             return;
         }
+        sleep(0.1);
     }
 }

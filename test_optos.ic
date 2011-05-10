@@ -1,0 +1,17 @@
+#use "defines.ic"
+#use "util.ic"
+
+void main() {
+    for(;;) {
+        printf(" FL: ");
+        print_hex_byte(analog(OPTO_FRONT_LEFT));
+        printf(" FR: ");
+        print_hex_byte(analog(OPTO_FRONT_RIGHT));
+        printf("  BL: ");
+        print_hex_byte(analog(OPTO_BACK_LEFT));
+        printf(" BR: ");
+        print_hex_byte(analog(OPTO_BACK_RIGHT));
+        printf("\n");
+        sleep(0.1);
+    }
+}

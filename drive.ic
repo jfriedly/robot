@@ -7,10 +7,14 @@
 
 #use "defines.ic"
 #use "util.ic"
+#use "line.ic"
 
 
 /// Wait for this many loops to confirm we're over something shiny (ie, aluminum strips)
-#define SHINY_TIME 5
+#define SHINY_TIME 3
+
+///If the treads differ by this many counts while trying to drive straight, stop the advanced one
+#define TREAD_DISPARITY 5
 
 /**
  * @brief Drive up the hill
@@ -63,16 +67,39 @@ void drive_up_hill() {
 
 //Call this in a loop to drive straight backwards using the optos.
 //Note: reset SHAFT_*_COUNT to zero first
-void step_straight_back(void) {
-    if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
-        motor(MOTOR_LEFT,  -50);
+void step_straight_back(int disparity) {
+    int low_power;
+    
+    if(abs(SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT) > disparity)
+      low_power = 0;
+    else
+      low_power = 50;
+    
+    if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT+1) {
+        motor(MOTOR_LEFT,  -low_power);
         motor(MOTOR_RIGHT, -100);
-    } else if(SHAFT_LEFT_COUNT < SHAFT_RIGHT_COUNT) {
+        
+    } else if(SHAFT_LEFT_COUNT < SHAFT_RIGHT_COUNT+1) {
         motor(MOTOR_LEFT, -100);
-        motor(MOTOR_RIGHT, -50);
+        motor(MOTOR_RIGHT, -low_power);
     } else {
         motor(MOTOR_LEFT,  -100);
         motor(MOTOR_RIGHT, -100);
+    }
+}
+
+//Call this in a loop to drive straight forward using the optos.
+//Note: reset SHAFT_*_COUNT to zero first
+void step_straight_forward(void) {
+    if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
+        motor(MOTOR_LEFT,  70);
+        motor(MOTOR_RIGHT, 100);
+    } else if(SHAFT_LEFT_COUNT < SHAFT_RIGHT_COUNT) {
+        motor(MOTOR_LEFT, 100);
+        motor(MOTOR_RIGHT, 70);
+    } else {
+        motor(MOTOR_LEFT,  100);
+        motor(MOTOR_RIGHT, 100);
     }
 }
 
@@ -81,7 +108,7 @@ void drive_back_to_shiny(void) {
     int shiny_ctr = 0;
     int high_water = 0;
     
-    printf("Where's the shiny?\n");
+    printf("Where's the shiny? Backward\n");
     
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
@@ -92,13 +119,55 @@ void drive_back_to_shiny(void) {
             shiny_ctr = 0;
         }
         
-        step_straight_back();
+        step_straight_back(2);
+    }
+    
+    printf("Going til back off\n");
+    //Continue until the back optos are off of the shiny
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
+      step_straight_back(3);
+    
+    
+    printf("Finding front optos\n");
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    shiny_ctr = 0;
+    while(shiny_ctr < SHINY_TIME && !stop_button()) {
+        if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
+            ++shiny_ctr;
+        } else {
+            shiny_ctr = 0;
+        }
+        
+        step_straight_back(3);
+    }
+    
+    ao();
+}
+
+//Drive backwards until we hit a metal strip.  Stop with the back optos just past it.
+void drive_forward_to_shiny(void) {
+    int shiny_ctr = 0;
+    int high_water = 0;
+    
+    printf("Where's the shiny? Forward\n");
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    while(shiny_ctr < SHINY_TIME && !stop_button()) {
+        if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
+            ++shiny_ctr;
+        } else {
+            shiny_ctr = 0;
+        }
+        
+        step_straight_forward();
     }
     
     //Continue until the back optos are off of the shiny
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
-      step_straight_back();
+      step_straight_back(5);
     
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     shiny_ctr = 0;
@@ -109,7 +178,7 @@ void drive_back_to_shiny(void) {
             shiny_ctr = 0;
         }
         
-        step_straight_back();
+        step_straight_back(5);
     }
     
     ao();
