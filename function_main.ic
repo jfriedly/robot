@@ -1,0 +1,63 @@
+/** 
+ * @file   function_main.ic
+ * @brief  Main loop
+ * @author Andrew Krieger
+ * @date   4/26/2011
+ *
+ */
+
+
+#use "defines.ic"
+#use "drive.ic"
+#use "servo/exp_servo_lib.ic"
+#use "servo/exp_servo_calibrate.ic"
+#use "CdS.ic"
+#use "line.ic"
+#use "drive-straight.ic"
+
+//#use "strip.ic"
+
+/**
+ * @brief main entry point
+ */
+void main() {
+    int btn;
+    long last_print = mseconds() - 100L;
+    //gps_initialize_knob();
+    //gps_enable();
+    
+    exp_servo_min[0] = 250;
+    exp_servo_max[0] = 2745;
+    
+    exp_servo_enable();
+    exp_servo_deg(0, 0);
+    
+    start_process(temp_shaft_encdr(), 2, 32);
+    
+    
+    for(;;) {
+        wait_for_start();
+        
+        follow_strip_back();
+        
+    }
+}
+/*
+        align_back_cw();
+        follow_strip_back();
+        
+        //Catch the wagon.  Drive backwards two inches, give or take
+        drive_straight_inches(-2.0);
+        
+        //Pull the wagon out of the barn
+        drive_straight_inches(5.0);
+        
+        //Turn left
+        turn(45.0);
+        
+        
+        
+    }
+}
+
+*/
