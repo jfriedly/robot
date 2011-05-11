@@ -1,0 +1,35 @@
+#use "defines.ic"
+#use "line.ic"
+#use "util.ic"
+#use "exp_servo_lib.ic"
+#use "drive-straight.ic"
+#use "drive.ic"
+
+
+int main()
+{
+    while(!start_button());
+    exp_servo_enable();
+    exp_servo_min[0] = 400;
+    exp_servo_max[0] = 4000;
+    start_process(temp_shaft_encdr(), 2, 32);
+    
+    follow_strip_forward();
+    drive_straight(-10);
+    
+    //move the servo in servo port 5 to 90
+    exp_servo_deg(0,90);
+    sleep(0.7);
+    exp_servo_deg(0,40);
+    sleep(0.5);
+    
+    //drive back a little ways
+    SHAFT_LEFT_COUNT=0;
+    SHAFT_RIGHT_COUNT=0;
+    while(SHAFT_LEFT_COUNT < 30 || SHAFT_RIGHT_COUNT < 30)
+    {
+        step_straight_back(1);
+        printf("%d  %d\n", SHAFT_LEFT_COUNT, SHAFT_RIGHT_COUNT);
+    }
+    ao();
+}

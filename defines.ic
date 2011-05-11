@@ -1,5 +1,6 @@
 #define MOTOR_LEFT  1
 #define MOTOR_RIGHT 3
+#define MOT_PWR 100
 
 #define OPTO_FRONT_LEFT  4
 #define OPTO_FRONT_RIGHT 6

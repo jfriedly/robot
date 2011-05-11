@@ -1,0 +1,13 @@
+#use "defines.ic"
+#use "line.ic"
+#use "util.ic"
+
+
+int main()
+{
+    while(!start_button());
+    
+    while(!stop_button());
+    follow_strip_forward();
+    
+}

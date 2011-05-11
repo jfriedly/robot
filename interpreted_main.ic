@@ -121,6 +121,8 @@ void drive_north(void) {
 
 
 int curr_action = 0;
+
+
 void step(void) {
     int act, arg1, arg2;
     

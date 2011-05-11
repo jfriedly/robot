@@ -38,6 +38,12 @@ void main() {
     for(;;) {
         wait_for_start();
         
+        drive_straight(-20);
+        
+        turn(60.0);
+        
+        drive_straight(120);
+        
         follow_strip_back();
         
     }

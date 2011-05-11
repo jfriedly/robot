@@ -122,51 +122,107 @@ void step_treads(int left, int right) {
 
 void follow_strip_forward() 
 {    
-    int readingL;
+    int readingL, readingR;
     
-    while(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD)
+    //follow along the left boundary
+    if((analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) && (analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD))
     {
-        readingL=analog(OPTO_FRONT_LEFT);
-        if(readingL > OPTO_THRESHOLD)
-        {
-            motor(MOTOR_LEFT,MOT_PWR);
+        while(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD)
+          {
             readingL=analog(OPTO_FRONT_LEFT);
+            if(readingL > OPTO_THRESHOLD)
+              {
+                motor(MOTOR_LEFT,MOT_PWR);
+                readingL=analog(OPTO_FRONT_LEFT);
+                
+            }
             
+            else if(readingL < OPTO_THRESHOLD)
+              {
+                motor(MOTOR_RIGHT,MOT_PWR);
+                readingL=analog(OPTO_FRONT_LEFT);
+            }
+            
+            sleep(0.01);
+            ao();
         }
-        
-        else if(readingL < OPTO_THRESHOLD)
-        {
-            motor(MOTOR_RIGHT,MOT_PWR);
-            readingL=analog(OPTO_FRONT_LEFT);
+    }
+    
+    //follow along the right boundary
+    else if((analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) && (analog(OPTO_FRONT_RIGHT) > OPTO_THRESHOLD))
+    {
+        while(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD)
+          {
+            readingR=analog(OPTO_FRONT_RIGHT);
+            if(readingR > OPTO_THRESHOLD)
+              {
+                motor(MOTOR_RIGHT,MOT_PWR);
+                readingR=analog(OPTO_FRONT_RIGHT);
+                
+            }
+            
+            else if(readingR < OPTO_THRESHOLD)
+              {
+                motor(MOTOR_LEFT,MOT_PWR);
+                readingR=analog(OPTO_FRONT_RIGHT);
+            }
+            
+            sleep(0.01);
+            ao();
         }
-        
-        sleep(0.01);
-        ao();
     }
 }
 
 void follow_strip_back() 
 {    
-    int readingL;
+    int readingL, readingR;
     
-    while(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
+    //follow back along left boundary
+    if((analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD) && (analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD))
     {
-        readingL=analog(OPTO_BACK_LEFT);
-        if(readingL > OPTO_THRESHOLD)
-        {
-            motor(MOTOR_LEFT,-MOT_PWR);
+        while(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
+          {
             readingL=analog(OPTO_BACK_LEFT);
+            if(readingL > OPTO_THRESHOLD)
+              {
+                motor(MOTOR_LEFT,-MOT_PWR);
+                readingL=analog(OPTO_BACK_LEFT);
+                
+            }
             
+            else if(readingL < OPTO_THRESHOLD)
+          {
+              motor(MOTOR_RIGHT,-MOT_PWR);
+              readingL=analog(OPTO_BACK_LEFT);
+            }
+            
+            sleep(0.01);
+            ao();
         }
-        
-        else if(readingL < OPTO_THRESHOLD)
-        {
-            motor(MOTOR_RIGHT,-MOT_PWR);
-            readingL=analog(OPTO_BACK_LEFT);
+   }
+       
+   //follow back along right boundary
+   else if((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) && (analog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD))
+   {
+        while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD)
+          {
+            readingR=analog(OPTO_BACK_RIGHT);
+            if(readingR > OPTO_THRESHOLD)
+              {
+                motor(MOTOR_RIGHT,-MOT_PWR);
+                readingR=analog(OPTO_BACK_LEFT);
+                
+            }
+            
+            else if(readingR < OPTO_THRESHOLD)
+          {
+              motor(MOTOR_LEFT,-MOT_PWR);
+              readingR=analog(OPTO_BACK_RIGHT);
+            }
+            
+            sleep(0.01);
+            ao();
         }
-        
-        sleep(0.01);
-        ao();
-    }
+   }    
 }
 
