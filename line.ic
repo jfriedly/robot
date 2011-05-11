@@ -120,37 +120,53 @@ void step_treads(int left, int right) {
     sleep(0.1);
 }
 
-void follow_strip_back(void) {
-    int mask;
+void follow_strip_forward() 
+{    
+    int readingL;
     
-    /*
-    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-    
-    reset_system_time();
-    while((SHAFT_LEFT_COUNT < 70 || SHAFT_RIGHT_COUNT < 70) && mseconds() < 8000L)
-      step_straight_back(2);
-    
-    ao();
-    sleep(0.1);
-    
-    return;
-    */
-    
-    
-    printf("Follow strip back\n");
-    for(;;) {
-        mask = opto_mask_all();
-        
-        if(!(mask & BACK_LEFT_MASK)) {
-            ao();
-            printf("Done following line\n");
-            return;
+    while(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD)
+    {
+        readingL=analog(OPTO_FRONT_LEFT);
+        if(readingL > OPTO_THRESHOLD)
+        {
+            motor(MOTOR_LEFT,MOT_PWR);
+            readingL=analog(OPTO_FRONT_LEFT);
+            
         }
         
-        if(mask & BACK_RIGHT_MASK)
-          step_treads(-2, 0);
-        else
-          step_treads(0, -2);
+        else if(readingL < OPTO_THRESHOLD)
+        {
+            motor(MOTOR_RIGHT,MOT_PWR);
+            readingL=analog(OPTO_FRONT_LEFT);
+        }
+        
+        sleep(0.01);
+        ao();
+    }
+}
+
+void follow_strip_back() 
+{    
+    int readingL;
+    
+    while(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
+    {
+        readingL=analog(OPTO_BACK_LEFT);
+        if(readingL > OPTO_THRESHOLD)
+        {
+            motor(MOTOR_LEFT,-MOT_PWR);
+            readingL=analog(OPTO_BACK_LEFT);
+            
+        }
+        
+        else if(readingL < OPTO_THRESHOLD)
+        {
+            motor(MOTOR_RIGHT,-MOT_PWR);
+            readingL=analog(OPTO_BACK_LEFT);
+        }
+        
+        sleep(0.01);
+        ao();
     }
 }
 
