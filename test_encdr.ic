@@ -1,0 +1,34 @@
+#use "defines.ic"
+
+int main() {
+    int disp_l, disp_r;
+    int motors = 0;
+    
+    disp_l = disp_r = -1;
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    start_process(temp_shaft_encdr(), 2, 32);
+    
+    for(;;) {
+        if(stop_button())
+          SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+        if(start_button()) {
+            while(start_button())
+              ;
+            motors = !motors;
+            if(motors) {
+                motor(MOTOR_LEFT, 100);
+                motor(MOTOR_RIGHT, 100);
+            } else {
+                motor(MOTOR_LEFT, 0);
+                motor(MOTOR_RIGHT, 0);
+            }
+        }
+        
+        if(SHAFT_LEFT_COUNT != disp_l || SHAFT_RIGHT_COUNT != disp_r) {
+            disp_l = SHAFT_LEFT_COUNT;
+            disp_r = SHAFT_RIGHT_COUNT;
+            
+            printf("L:%d R:%d\n", disp_l, disp_r);
+        }
+    }
+}

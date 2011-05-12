@@ -89,6 +89,7 @@ void main() {
         
         drive_straight(30);
         turn(-45.0);
+        //turn(45.0);
         
         angle_right_to_shiny();
         
@@ -102,10 +103,16 @@ void main() {
         exp_servo_deg(0, 180);
         press_start();
         
-        drive_straight(5);
+        follow_strip_forward(1);
+        drive_straight(-4);
+        //try to turn and knock corn off of magnet
+        exp_servo_deg(0,135);
+        sleep(0.2);
+        turn(40.0);
         exp_servo_deg(0, 90);
         press_start();
         
+        /*
         while(!stop_button()) {
             SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
             motor(MOTOR_LEFT, -100);
@@ -115,6 +122,17 @@ void main() {
               ;
             ao();
             msleep(250L);
-        }
+         }
+*/
+        
+        SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+        motor(MOTOR_LEFT, -100);
+        motor(MOTOR_RIGHT, -100);
+        reset_system_time();
+        while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 20 && mseconds() < 2000L)
+          ;
+        ao();
+        
+        
     }
 }

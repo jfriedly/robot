@@ -189,9 +189,9 @@ void angle_right_to_shiny(void) {
     int shiny_ctr = 0;
     
     printf("Drive to shiny. Angle right\n");
-        
+    
     motor(MOTOR_LEFT, 100);
-    motor(MOTOR_RIGHT, 90);
+    motor(MOTOR_RIGHT, 80);
     
     while(shiny_ctr < SHINY_TIME && !stop_button()) {
         if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
@@ -208,7 +208,7 @@ void angle_right_to_shiny(void) {
     }
     
     ao();
-
+    
 }
 
 

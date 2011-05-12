@@ -1,0 +1,17 @@
+#use "defines.ic"
+#use "drive.ic"
+#use "util.ic"
+
+int main() {
+    int btn;
+    
+    start_process(temp_shaft_encdr(), 2, 32);
+    
+    for(;;) {
+        btn = press_button();
+        if(btn == BUTTON_START)
+          turn(45.0);
+        else
+          turn(-45.0);
+    }
+}

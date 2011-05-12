@@ -1,0 +1,8 @@
+#use "defines.ic"
+
+int main() {
+    for(;;) {
+        printf("%d\n", analog(CDS_CELL));
+        msleep(100L);
+    }
+}
