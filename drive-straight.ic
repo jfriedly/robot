@@ -1,6 +1,52 @@
 #use "util.ic"
 
-#use "encoders.ic"
+#use "defines.ic"
+
+
+
+#ifndef USE_OLD_DRIVE_STRAIGHT
+
+void drive_straight(int trans) {
+    int dir;
+    int low_pwr;
+    int diff;
+    
+    if(trans == 0)
+      return;
+    
+    dir = trans / abs(trans);
+    
+    //Set trans = 2*abs(trans), so we can drive until avg(left, right) < trans   <=>    left+right < 2*trans
+    trans = abs(trans);
+    trans += trans;
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < trans) {
+        diff = abs(SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT);
+        if(diff > 5)
+          low_pwr = 0;
+        else if(diff > 3)
+          low_pwr = 60;
+        else if(diff > 1)
+          low_pwr = 80;
+        else
+          low_pwr = 100;
+        
+        if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
+            motor(MOTOR_LEFT, dir * low_pwr);
+            motor(MOTOR_RIGHT, dir * 100);
+        } else {
+            motor(MOTOR_LEFT, dir * 100);
+            motor(MOTOR_RIGHT, dir * low_pwr);
+        }
+    }
+    
+    ao();
+
+}
+
+#else
 
 #define MOTOR_LEFT 1
 #define MOTOR_RIGHT 3
@@ -175,3 +221,5 @@ int main() {
     }
 }
 */
+
+#endif

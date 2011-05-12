@@ -11,7 +11,7 @@
 
 
 /// Wait for this many loops to confirm we're over something shiny (ie, aluminum strips)
-#define SHINY_TIME 3
+#define SHINY_TIME 2
 
 ///If the treads differ by this many counts while trying to drive straight, stop the advanced one
 #define TREAD_DISPARITY 5
@@ -184,6 +184,35 @@ void drive_forward_to_shiny(void) {
     ao();
 }
 
+
+void angle_right_to_shiny(void) {
+    int shiny_ctr = 0;
+    
+    printf("Drive to shiny. Angle right\n");
+        
+    motor(MOTOR_LEFT, 100);
+    motor(MOTOR_RIGHT, 90);
+    
+    while(shiny_ctr < SHINY_TIME && !stop_button()) {
+        if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
+            ++shiny_ctr;
+        } else {
+            shiny_ctr = 0;
+        }
+        
+        if(mseconds() >= 50L) {
+            printf("%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
+            reset_system_time();
+        }
+        
+    }
+    
+    ao();
+
+}
+
+
+
 /**
  * @brief Align self with metal strip
  * Not currently used.
@@ -261,4 +290,11 @@ void cw_degrees(float deg) {
       ;
     
     ao();
+}
+
+
+void turn_cw_to_shiny(void) {
+    while(analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) {
+        cw_degrees(10.0);
+    }
 }

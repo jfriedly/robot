@@ -15,55 +15,106 @@
 #use "line.ic"
 #use "drive-straight.ic"
 
-//#use "strip.ic"
 
+void step_treads2(int left, int right, long timeout) {
+    int left_dir = 100, right_dir = 100;
+    
+    if(left < 0)
+      left_dir = -100;
+    if(right < 0)
+      right_dir = -100;
+    
+    left = abs(left);
+    right = abs(right);
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    reset_system_time();
+    
+    while((SHAFT_LEFT_COUNT < left || SHAFT_RIGHT_COUNT < right) && mseconds() < timeout) {
+        if(SHAFT_LEFT_COUNT < left && SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT < 2)
+          motor(MOTOR_LEFT, left_dir);
+        else
+          motor(MOTOR_LEFT, 0);
+        
+        if(SHAFT_RIGHT_COUNT < right && SHAFT_RIGHT_COUNT - SHAFT_LEFT_COUNT < 2)
+          motor(MOTOR_RIGHT, right_dir);
+        else
+          motor(MOTOR_RIGHT, 0);
+    }
+    
+    ao();
+    //be nice to the motors
+    sleep(0.1);
+}
 /**
  * @brief main entry point
  */
 void main() {
-    int btn;
-    long last_print = mseconds() - 100L;
+    int arg[5];
+    int def[5]   = {  -5, 270,  25,  45, 100};
+    int i, disp;
+    
     //gps_initialize_knob();
     //gps_enable();
     
-    exp_servo_min[0] = 250;
-    exp_servo_max[0] = 2745;
+    exp_servo_min[0] = 400;
+    exp_servo_max[0] = 4000;
     
     exp_servo_enable();
-    exp_servo_deg(0, 0);
+    exp_servo_deg(0, 70);
     
     start_process(temp_shaft_encdr(), 2, 32);
     
     
+    
+    
     for(;;) {
-        wait_for_start();
+        /*
+        for(i=0;i<5;++i) {
+            disp = -1;
+            while(!start_button()) {
+                arg[i] = def[i] + (knob() - 128) / 4;
+                if(arg[i] != disp) {
+                    disp = arg[i];
+                    printf("Step %d: %d\n", i, disp);
+                }
+            }
+            while(start_button())
+              ;
+        }
+        */
         
-        drive_straight(-20);
+        printf("Press start\n");
+        press_start();
         
-        turn(60.0);
+        drive_straight(30);
+        turn(-45.0);
         
-        drive_straight(120);
+        angle_right_to_shiny();
         
-        follow_strip_back();
+        drive_straight(10);
         
+        turn_cw_to_shiny();
+        
+        follow_strip_forward(1);
+        
+        drive_straight(-15);
+        exp_servo_deg(0, 180);
+        press_start();
+        
+        drive_straight(5);
+        exp_servo_deg(0, 90);
+        press_start();
+        
+        while(!stop_button()) {
+            SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+            motor(MOTOR_LEFT, -100);
+            motor(MOTOR_RIGHT, -100);
+            reset_system_time();
+            while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 20 && mseconds() < 2000L)
+              ;
+            ao();
+            msleep(250L);
+        }
     }
 }
-/*
-        align_back_cw();
-        follow_strip_back();
-        
-        //Catch the wagon.  Drive backwards two inches, give or take
-        drive_straight_inches(-2.0);
-        
-        //Pull the wagon out of the barn
-        drive_straight_inches(5.0);
-        
-        //Turn left
-        turn(45.0);
-        
-        
-        
-    }
-}
-
-*/

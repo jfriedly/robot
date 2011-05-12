@@ -1,35 +1,62 @@
 #use "defines.ic"
-#use "line.ic"
 #use "util.ic"
 #use "exp_servo_lib.ic"
 #use "drive-straight.ic"
 #use "drive.ic"
 
+void step_treads2(int left, int right, long timeout) {
+    int left_dir = 100, right_dir = 100;
+    
+    if(left < 0)
+      left_dir = -100;
+    if(right < 0)
+      right_dir = -100;
+    
+    left = abs(left);
+    right = abs(right);
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    reset_system_time();
+    
+    while((SHAFT_LEFT_COUNT < left || SHAFT_RIGHT_COUNT < right) && mseconds() < timeout) {
+        if(SHAFT_LEFT_COUNT < left && SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT < 2)
+          motor(MOTOR_LEFT, left_dir);
+        else
+          motor(MOTOR_LEFT, 0);
+        
+        if(SHAFT_RIGHT_COUNT < right && SHAFT_RIGHT_COUNT - SHAFT_LEFT_COUNT < 2)
+          motor(MOTOR_RIGHT, right_dir);
+        else
+          motor(MOTOR_RIGHT, 0);
+    }
+    
+    ao();
+    //be nice to the motors
+    sleep(0.1);
+}
+
+//Still not reliable.
+//Try to pull the corn of the magnet repeatedly.
+//To drop it, try lowering servo to 145 degrees, then back up.
 
 int main()
 {
-    while(!start_button());
     exp_servo_enable();
     exp_servo_min[0] = 400;
     exp_servo_max[0] = 4000;
     start_process(temp_shaft_encdr(), 2, 32);
     
-    follow_strip_forward();
-    drive_straight(-10);
-    
-    //move the servo in servo port 5 to 90
-    exp_servo_deg(0,90);
-    sleep(0.7);
-    exp_servo_deg(0,40);
-    sleep(0.5);
-    
-    //drive back a little ways
-    SHAFT_LEFT_COUNT=0;
-    SHAFT_RIGHT_COUNT=0;
-    while(SHAFT_LEFT_COUNT < 30 || SHAFT_RIGHT_COUNT < 30)
-    {
-        step_straight_back(1);
-        printf("%d  %d\n", SHAFT_LEFT_COUNT, SHAFT_RIGHT_COUNT);
+    for(;;) {
+        int i;
+        exp_servo_deg(0, 180);
+        press_start();
+        
+        exp_servo_deg(0, 90);
+        msleep(1000L);
+        step_treads2(-40, -40, 30000L);
+        
+        ao();
     }
+    
     ao();
 }

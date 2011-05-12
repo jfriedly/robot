@@ -32,6 +32,36 @@ int opto_mask_all() {
 }
 
 /**
+ * @brief Line up with metal strip
+ *
+ * This is meant to be used to align with the corn.
+ * Turn CW and drive straight to align with metal strip.
+ */
+void align_forward_cw(void) {
+    int mask;
+    printf("Align forward cw\n");
+    
+    for(;;) {
+        mask = opto_mask_all();
+        
+        if(mask & BACK_RIGHT_MASK) {
+            ao();
+            return;
+        }
+        
+        if(mask & FRONT_LEFT_MASK) {
+            motor(MOTOR_LEFT, 100);
+            motor(MOTOR_RIGHT, -100);
+        } else {
+            motor(MOTOR_LEFT, 100);
+            motor(MOTOR_RIGHT, 100);
+        }
+    }
+}
+
+
+
+/**
  * @brief Line up with the metal strip
  *
  * This is meant to be used to align with the wagon.  Put the front optos just off of the metal strip,
@@ -120,13 +150,21 @@ void step_treads(int left, int right) {
     sleep(0.1);
 }
 
-void follow_strip_forward() 
+void follow_strip_forward(int left_bound) 
 {    
     int readingL, readingR;
     
+    
+/*
+    while(!start_button()) {
+        printf("L%d R%d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
+        sleep(0.05);
+    }
+*/  
     //follow along the left boundary
-    if((analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) && (analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD))
-    {
+    if(left_bound) //(analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) && (analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD))
+      {
+        printf("Left\n");
         while(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD)
           {
             readingL=analog(OPTO_FRONT_LEFT);
@@ -149,8 +187,9 @@ void follow_strip_forward()
     }
     
     //follow along the right boundary
-    else if((analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) && (analog(OPTO_FRONT_RIGHT) > OPTO_THRESHOLD))
-    {
+    else //if((analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) && (analog(OPTO_FRONT_RIGHT) > OPTO_THRESHOLD))
+      {
+        printf("Right\n");
         while(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD)
           {
             readingR=analog(OPTO_FRONT_RIGHT);
@@ -179,7 +218,7 @@ void follow_strip_back()
     
     //follow back along left boundary
     if((analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD) && (analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD))
-    {
+      {
         while(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
           {
             readingL=analog(OPTO_BACK_LEFT);
@@ -191,19 +230,19 @@ void follow_strip_back()
             }
             
             else if(readingL < OPTO_THRESHOLD)
-          {
-              motor(MOTOR_RIGHT,-MOT_PWR);
-              readingL=analog(OPTO_BACK_LEFT);
+              {
+                motor(MOTOR_RIGHT,-MOT_PWR);
+                readingL=analog(OPTO_BACK_LEFT);
             }
             
             sleep(0.01);
             ao();
         }
-   }
-       
-   //follow back along right boundary
-   else if((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) && (analog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD))
-   {
+    }
+    
+    //follow back along right boundary
+    else if((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) && (analog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD))
+      {
         while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD)
           {
             readingR=analog(OPTO_BACK_RIGHT);
@@ -215,14 +254,14 @@ void follow_strip_back()
             }
             
             else if(readingR < OPTO_THRESHOLD)
-          {
-              motor(MOTOR_LEFT,-MOT_PWR);
-              readingR=analog(OPTO_BACK_RIGHT);
+              {
+                motor(MOTOR_LEFT,-MOT_PWR);
+                readingR=analog(OPTO_BACK_RIGHT);
             }
             
             sleep(0.01);
             ao();
         }
-   }    
+    }    
 }
 
