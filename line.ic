@@ -269,3 +269,14 @@ void follow_strip_back()
     }    
 }
 
+void find_strip_with_back()
+{
+    turn(110.0);
+    while(analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD)
+      {
+        motor(MOTOR_LEFT, -100);
+        motor(MOTOR_RIGHT, 100);
+        sleep(0.01);
+    }
+}
+

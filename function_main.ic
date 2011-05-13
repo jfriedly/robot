@@ -15,6 +15,7 @@
 #use "line.ic"
 #use "drive-straight.ic"
 
+/*
 void align_with_corn(void) {
     //Find the strip with both optos
     turn(90.0);
@@ -25,11 +26,11 @@ void align_with_corn(void) {
       ;
     
     f
-    
-    
-    
-}
-
+      
+      
+      
+  }
+*/
 
 void step_treads2(int left, int right, long timeout) {
     int left_dir = 100, right_dir = 100;
@@ -101,7 +102,7 @@ void main() {
         printf("Press start\n");
         press_start();
         
-        drive_straight(30);
+        drive_straight(15);
         turn(-45.0);
         //turn(45.0);
         
@@ -109,29 +110,32 @@ void main() {
         
         drive_straight(10);
         
-        turn_ccw_to_shiny();
+        find_strip_with_back();
         
         follow_strip_back();
         
-        drive_straight(15);
-        exp_servo_deg(0, 120);
-        press_start();
-        
-        follow_strip_back();
-        drive_straight(-4);
-        exp_servo_deg(0, 80);
-        press_start();
-        
-        while(!stop_button()) {
-            SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-            motor(MOTOR_LEFT, 100);
-            motor(MOTOR_RIGHT, 100);
-            reset_system_time();
-            while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 20 && mseconds() < 2000L)
-              ;
-            ao();
-            msleep(250L);
-        }  
-    
+        if(0) {
+            follow_strip_back();
+            
+            drive_straight(15);
+            exp_servo_deg(0, 120);
+            press_start();
+            
+            follow_strip_back();
+            drive_straight(-4);
+            exp_servo_deg(0, 80);
+            press_start();
+            
+            while(!stop_button()) {
+                SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+                motor(MOTOR_LEFT, 100);
+                motor(MOTOR_RIGHT, 100);
+                reset_system_time();
+                while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 20 && mseconds() < 2000L)
+                  ;
+                ao();
+                msleep(250L);
+            }  
+        }
     }
 }
