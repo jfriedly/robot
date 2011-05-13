@@ -15,6 +15,21 @@
 #use "line.ic"
 #use "drive-straight.ic"
 
+void align_with_corn(void) {
+    //Find the strip with both optos
+    turn(90.0);
+    
+    motor(MOTOR_LEFT, -100);
+    motor(MOTOR_RIGHT,  80);
+    while(analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD)
+      ;
+    
+    f
+    
+    
+    
+}
+
 
 void step_treads2(int left, int right, long timeout) {
     int left_dir = 100, right_dir = 100;
@@ -61,12 +76,11 @@ void main() {
     exp_servo_max[0] = 4000;
     
     exp_servo_enable();
-    exp_servo_deg(0, 70);
+    exp_servo_deg(0, 40);
     
     start_process(temp_shaft_encdr(), 2, 32);
     
-    
-    
+    disp = -1;
     
     for(;;) {
         /*
@@ -95,44 +109,29 @@ void main() {
         
         drive_straight(10);
         
-        turn_cw_to_shiny();
+        turn_ccw_to_shiny();
         
-        follow_strip_forward(1);
+        follow_strip_back();
         
-        drive_straight(-15);
-        exp_servo_deg(0, 180);
+        drive_straight(15);
+        exp_servo_deg(0, 120);
         press_start();
         
-        follow_strip_forward(1);
+        follow_strip_back();
         drive_straight(-4);
-        //try to turn and knock corn off of magnet
-        exp_servo_deg(0,135);
-        sleep(0.2);
-        turn(40.0);
-        exp_servo_deg(0, 90);
+        exp_servo_deg(0, 80);
         press_start();
         
-        /*
         while(!stop_button()) {
             SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-            motor(MOTOR_LEFT, -100);
-            motor(MOTOR_RIGHT, -100);
+            motor(MOTOR_LEFT, 100);
+            motor(MOTOR_RIGHT, 100);
             reset_system_time();
             while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 20 && mseconds() < 2000L)
               ;
             ao();
             msleep(250L);
-         }
-*/
-        
-        SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-        motor(MOTOR_LEFT, -100);
-        motor(MOTOR_RIGHT, -100);
-        reset_system_time();
-        while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 20 && mseconds() < 2000L)
-          ;
-        ao();
-        
-        
+        }  
+    
     }
 }

@@ -191,7 +191,7 @@ void angle_right_to_shiny(void) {
     printf("Drive to shiny. Angle right\n");
     
     motor(MOTOR_LEFT, 100);
-    motor(MOTOR_RIGHT, 80);
+    motor(MOTOR_RIGHT, 90);
     
     while(shiny_ctr < SHINY_TIME && !stop_button()) {
         if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
@@ -294,7 +294,24 @@ void cw_degrees(float deg) {
 
 
 void turn_cw_to_shiny(void) {
-    while(analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) {
-        cw_degrees(10.0);
+    motor(MOTOR_LEFT,    80);
+    motor(MOTOR_RIGHT, -100);
+    while(analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD)
+      ;
+    
+    ao();
+}
+
+
+void turn_ccw_to_shiny(void) {
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    motor(MOTOR_LEFT, -100);
+    motor(MOTOR_RIGHT,  80);
+    while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 80) {
+        while(analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD)
+          ;
     }
+    
+    ao();
 }
