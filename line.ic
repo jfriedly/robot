@@ -299,7 +299,7 @@ void back_to_end_of_line(void) {
         if(!analog_shiny(OPTO_BACK_RIGHT)) {
             if(tyme == -1L)
               tyme = mseconds();
-            if(mseconds() - tyme > 100L) {
+            if(mseconds() - tyme > 300L) {
                 break;
                 //Try turning around in case we just drove off the side if the line
                 /*                
@@ -361,12 +361,14 @@ void back_to_end_of_line(void) {
           tyme = -1L;
         if(analog_shiny(OPTO_BACK_LEFT)) {
             step_treads(0, -1);
-            //motor(MOTOR_RIGHT, -70);
-            //motor(MOTOR_LEFT, 70);
+//            motor(MOTOR_RIGHT, -100);
+//            motor(MOTOR_LEFT, 0);
+//            sleep(0.01);
         } else {
             step_treads(-2, -1);
-            //motor(MOTOR_RIGHT, -55);
-            //motor(MOTOR_LEFT, -90);
+//            motor(MOTOR_RIGHT, 0);
+//            motor(MOTOR_LEFT, -100);
+//            sleep(0.01);
         }
         
     }

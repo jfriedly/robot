@@ -107,14 +107,12 @@ void main() {
         }
         
         drive_straight(25);
-        turn(-45.0);
+        turn(-30.0);
         
         angle_right_to_shiny();
         
         
-        turn(60.0);
-        drive_straight(-2);
-        turn(60.0);
+        turn(120.0);
         
         find_shiny();
         
@@ -124,13 +122,13 @@ void main() {
         
         exp_servo_deg(0, 150);
         msleep(500L);
-        step_treads(-5, -5);
+        step_treads(-7, -7);
         exp_servo_deg(0, 60);
         msleep(500L);
-
-        for(i=0;i<10 && !stop_button();++i)
-          step_treads(-2, 2);
         
+        
+        step_treads2(30, 30, 5000L);
+
         /*
         if(0) {
             follow_strip_back();
@@ -156,5 +154,23 @@ void main() {
             }  
         }
 */
+        
+        printf("Press STOP to go to start area\n");
+        if(press_button() == BUTTON_STOP) {
+        
+            while(!digital(SWITCH_FRONT)) {
+                motor(MOTOR_LEFT, 80);
+                motor(MOTOR_RIGHT, 100);    
+            }
+            
+            step_treads(-5, -5);
+            turn(90.0);
+            
+            while(!digital(SWITCH_FRONT)) {
+                motor(MOTOR_LEFT, 100);
+                motor(MOTOR_RIGHT, 100);
+            }
+                  
+        }
     }
 }

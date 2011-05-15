@@ -31,7 +31,7 @@ void drive_up_hill() {
     motor(MOTOR_LEFT, 100);
     while(shiny_ctr < SHINY_TIME) {
         //If the switch is pressed, go straight.  Otherwise angle right.
-        if(digital(FRONT_RIGHT_SWITCH))
+        if(digital(SWITCH_FRONT_RIGHT))
           motor(MOTOR_RIGHT,100);
         else
           motor(MOTOR_RIGHT, 60);
