@@ -159,3 +159,12 @@ int round(float x) {
     }
 }
 
+int myanalog(int sensor)
+{
+    int a,b;
+    a=analog(sensor);
+    sleep(0.001);
+    b=analog(sensor);
+    return (a+b)/2;
+}
+

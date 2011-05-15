@@ -1,6 +1,7 @@
 #use "defines.ic"
 #use "util.ic"
 #use "drive.ic"
+#use "drive-straight.ic"
 
 //Use bitmasks to make it easier to read the sensors
 #define BACK_LEFT_BIT   0
@@ -32,36 +33,6 @@ int opto_mask_all() {
 }
 
 /**
- * @brief Line up with metal strip
- *
- * This is meant to be used to align with the corn.
- * Turn CW and drive straight to align with metal strip.
- */
-void align_forward_cw(void) {
-    int mask;
-    printf("Align forward cw\n");
-    
-    for(;;) {
-        mask = opto_mask_all();
-        
-        if(mask & BACK_RIGHT_MASK) {
-            ao();
-            return;
-        }
-        
-        if(mask & FRONT_LEFT_MASK) {
-            motor(MOTOR_LEFT, 100);
-            motor(MOTOR_RIGHT, -100);
-        } else {
-            motor(MOTOR_LEFT, 100);
-            motor(MOTOR_RIGHT, 100);
-        }
-    }
-}
-
-
-
-/**
  * @brief Line up with the metal strip
  *
  * This is meant to be used to align with the wagon.  Put the front optos just off of the metal strip,
@@ -80,10 +51,10 @@ void align_back_cw(void) {
         //        if(mask != last) {
         //            ao();
         //            printf("Switching to %d  ", mask);
-        //            print_hex_byte(analog(OPTO_BACK_LEFT)); printf(" ");
-        //            print_hex_byte(analog(OPTO_BACK_RIGHT)); printf(" ");
-        //            print_hex_byte(analog(OPTO_FRONT_LEFT)); printf(" ");
-        //            print_hex_byte(analog(OPTO_FRONT_RIGHT)); printf(" ");
+        //            print_hex_byte(myanalog(OPTO_BACK_LEFT)); printf(" ");
+        //            print_hex_byte(myanalog(OPTO_BACK_RIGHT)); printf(" ");
+        //            print_hex_byte(myanalog(OPTO_FRONT_LEFT)); printf(" ");
+        //            print_hex_byte(myanalog(OPTO_FRONT_RIGHT)); printf(" ");
         //            printf("\n");
         //            sleep(0.1);
         //            last = mask;
@@ -150,35 +121,27 @@ void step_treads(int left, int right) {
     sleep(0.1);
 }
 
-void follow_strip_forward(int left_bound) 
+void follow_strip_forward() 
 {    
     int readingL, readingR;
     
-    
-    /*
-    while(!start_button()) {
-        printf("L%d R%d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
-        sleep(0.05);
-    }
-*/  
     //follow along the left boundary
-    if(left_bound) //(analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) && (analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD))
+    if((myanalog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) && (myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD))
       {
-        printf("Left\n");
-        while(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD)
+        while(myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD)
           {
-            readingL=analog(OPTO_FRONT_LEFT);
+            readingL=myanalog(OPTO_FRONT_LEFT);
             if(readingL > OPTO_THRESHOLD)
               {
                 motor(MOTOR_LEFT,MOT_PWR);
-                readingL=analog(OPTO_FRONT_LEFT);
+                readingL=myanalog(OPTO_FRONT_LEFT);
                 
             }
             
             else if(readingL < OPTO_THRESHOLD)
               {
                 motor(MOTOR_RIGHT,MOT_PWR);
-                readingL=analog(OPTO_FRONT_LEFT);
+                readingL=myanalog(OPTO_FRONT_LEFT);
             }
             
             sleep(0.01);
@@ -187,23 +150,22 @@ void follow_strip_forward(int left_bound)
     }
     
     //follow along the right boundary
-    else //if((analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) && (analog(OPTO_FRONT_RIGHT) > OPTO_THRESHOLD))
+    else if((myanalog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) && (myanalog(OPTO_FRONT_RIGHT) > OPTO_THRESHOLD))
       {
-        printf("Right\n");
-        while(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD)
+        while(myanalog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD)
           {
-            readingR=analog(OPTO_FRONT_RIGHT);
+            readingR=myanalog(OPTO_FRONT_RIGHT);
             if(readingR > OPTO_THRESHOLD)
               {
                 motor(MOTOR_RIGHT,MOT_PWR);
-                readingR=analog(OPTO_FRONT_RIGHT);
+                readingR=myanalog(OPTO_FRONT_RIGHT);
                 
             }
             
             else if(readingR < OPTO_THRESHOLD)
               {
                 motor(MOTOR_LEFT,MOT_PWR);
-                readingR=analog(OPTO_FRONT_RIGHT);
+                readingR=myanalog(OPTO_FRONT_RIGHT);
             }
             
             sleep(0.01);
@@ -216,26 +178,26 @@ void follow_strip_back()
 {    
     int readingL, readingR;
     
-    printf("Strip back      ");
+    printf("FSB L%d R%d", myanalog(OPTO_BACK_LEFT), myanalog(OPTO_BACK_RIGHT));
     
     //follow back along left boundary
-    if((analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD) && (analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD))
+    if((myanalog(OPTO_BACK_LEFT) > OPTO_THRESHOLD) && (myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD))
       {
-        printf("Left\n");
-        while(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
+        printf(" BL=ON BR=OFF");
+        while(myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
           {
-            readingL=analog(OPTO_BACK_LEFT);
+            readingL=myanalog(OPTO_BACK_LEFT);
             if(readingL > OPTO_THRESHOLD)
               {
                 motor(MOTOR_LEFT,-MOT_PWR);
-                readingL=analog(OPTO_BACK_LEFT);
+                readingL=myanalog(OPTO_BACK_LEFT);
                 
             }
             
             else if(readingL < OPTO_THRESHOLD)
               {
                 motor(MOTOR_RIGHT,-MOT_PWR);
-                readingL=analog(OPTO_BACK_LEFT);
+                readingL=myanalog(OPTO_BACK_LEFT);
             }
             
             sleep(0.01);
@@ -243,24 +205,35 @@ void follow_strip_back()
         }
     }
     
-    //follow back along right boundary
-    else if((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) && (analog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD))
+    //if they're both on, look for the left boundary
+    else if(myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
       {
-        printf("Right\n");
-        while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD)
+        printf("Both sensors on\n");
+        press_start();
+        while(myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD)
+          motor(MOTOR_LEFT,-100);
+        follow_strip_back();
+        
+    }
+    
+    //follow back along right boundary
+    else if((myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) && (myanalog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD))
+      {
+        printf(" BL=OFF BR=ON");
+        while(myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD)
           {
-            readingR=analog(OPTO_BACK_RIGHT);
+            readingR=myanalog(OPTO_BACK_RIGHT);
             if(readingR > OPTO_THRESHOLD)
               {
                 motor(MOTOR_RIGHT,-MOT_PWR);
-                readingR=analog(OPTO_BACK_LEFT);
+                readingR=myanalog(OPTO_BACK_LEFT);
                 
             }
             
             else if(readingR < OPTO_THRESHOLD)
               {
                 motor(MOTOR_LEFT,-MOT_PWR);
-                readingR=analog(OPTO_BACK_RIGHT);
+                readingR=myanalog(OPTO_BACK_RIGHT);
             }
             
             sleep(0.01);
@@ -269,14 +242,140 @@ void follow_strip_back()
     }    
 }
 
-void find_strip_with_back()
+void find_shiny()
 {
-    turn(110.0);
-    while(analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD)
+    printf("FS\n");
+    while(myanalog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD)
       {
-        motor(MOTOR_LEFT, -100);
-        motor(MOTOR_RIGHT, 100);
-        sleep(0.01);
+        motor(MOTOR_LEFT, -(MOT_PWR-20));
+        motor(MOTOR_RIGHT, MOT_PWR-20);
     }
+    ao();
 }
 
+void align_with_shiny()
+{
+    while(myanalog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD)
+      motor(MOTOR_RIGHT,-100);
+    ao();
+    
+    /*while(myanalog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD || myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD || myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
+    {
+        while(myanalog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD && myanalog(OPTO_FRONT_RIGHT) > OPTO_THRESHOLD && myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) {
+            
+            if(myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
+                motor(MOTOR_LEFT,  -100);
+                motor(MOTOR_RIGHT, 100);
+            } else {
+                motor(MOTOR_LEFT, -100);
+                motor(MOTOR_RIGHT, -100);
+            }
+            
+        }    
+    ao();
+    if(myanalog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD || myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD || myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)    
+        return;
+    else
+        find_shiny();  
+    }*/
+}
+
+int analog_shiny(int port) {
+    return analog(port) < OPTO_THRESHOLD;
+}
+
+
+void back_to_end_of_line(void) {
+    long tyme = -1L;
+    
+    if(!analog_shiny(OPTO_BACK_RIGHT))
+      for(;;)
+        beep();
+    
+    reset_system_time();
+    //Advance to end of strip
+    for(;;) {
+        printf("%d %d\n", analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
+        if(!analog_shiny(OPTO_BACK_RIGHT)) {
+            if(tyme == -1L)
+              tyme = mseconds();
+            if(mseconds() - tyme > 100L) {
+                break;
+                //Try turning around in case we just drove off the side if the line
+                /*                
+                SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+                while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 12) {
+                    beep();
+                    if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT + 3) {
+                        motor(MOTOR_LEFT, 0);
+                        motor(MOTOR_RIGHT, 100);
+                    } else if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT + 1) {
+                        motor(MOTOR_LEFT, -50);
+                        motor(MOTOR_RIGHT, 100);
+                    } else if(SHAFT_LEFT_COUNT >= SHAFT_RIGHT_COUNT - 1) {
+                        motor(MOTOR_LEFT, -100);
+                        motor(MOTOR_RIGHT, 100);
+                    } else if(SHAFT_LEFT_COUNT >= SHAFT_RIGHT_COUNT - 3) {
+                        motor(MOTOR_LEFT, -100);
+                        motor(MOTOR_RIGHT, 50);
+                    } else {
+                        motor(MOTOR_LEFT, -100);
+                        motor(MOTOR_RIGHT, 0);
+                    }
+                    
+                    if(analog_shiny(OPTO_BACK_RIGHT))
+                      break;
+                }
+                
+                if(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT >= 12) {
+                    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+                    while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 18) {
+                        beep();
+                        if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT + 3) {
+                            motor(MOTOR_LEFT, 0);
+                            motor(MOTOR_RIGHT, -100);
+                        } else if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT + 1) {
+                            motor(MOTOR_LEFT, 50);
+                            motor(MOTOR_RIGHT,-100);
+                        } else if(SHAFT_LEFT_COUNT >= SHAFT_RIGHT_COUNT - 1) {
+                            motor(MOTOR_LEFT,   100);
+                            motor(MOTOR_RIGHT, -100);
+                        } else if(SHAFT_LEFT_COUNT >= SHAFT_RIGHT_COUNT - 3) {
+                            motor(MOTOR_LEFT,  100);
+                            motor(MOTOR_RIGHT, -50);
+                        } else {
+                            motor(MOTOR_LEFT, 100);
+                            motor(MOTOR_RIGHT, 0);
+                        }
+                        
+                        if(analog_shiny(OPTO_BACK_RIGHT))
+                          break;
+                    }
+                    
+                    if(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT >= 18)
+                      break;
+                }
+*/
+            }
+        } else
+          tyme = -1L;
+        if(analog_shiny(OPTO_BACK_LEFT)) {
+            step_treads(0, -1);
+            //motor(MOTOR_RIGHT, -70);
+            //motor(MOTOR_LEFT, 70);
+        } else {
+            step_treads(-2, -1);
+            //motor(MOTOR_RIGHT, -55);
+            //motor(MOTOR_LEFT, -90);
+        }
+        
+    }
+    
+    ao();
+}
+
+
+#define SLEEPY_TIME 1.0
+void align_with_line(void) {
+    
+}

@@ -5,9 +5,12 @@
 
 int main()
 {
-    while(!start_button());
-    
-    while(!stop_button());
-    follow_strip_forward();
+    for(;;) {
+        printf("press start\n");
+        while(!start_button());
+        
+        while(!stop_button());
+        follow_strip_back();
+    }
     
 }

@@ -77,11 +77,13 @@ void main() {
     exp_servo_max[0] = 4000;
     
     exp_servo_enable();
-    exp_servo_deg(0, 40);
+    exp_servo_deg(0, 30);
     
     start_process(temp_shaft_encdr(), 2, 32);
     
     disp = -1;
+    
+    
     
     for(;;) {
         /*
@@ -99,21 +101,37 @@ void main() {
         }
         */
         
-        printf("Press start\n");
-        press_start();
+        while(!start_button()) {
+            printf("%d %d\n", analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
+            msleep(5L);
+        }
         
-        drive_straight(15);
+        drive_straight(25);
         turn(-45.0);
-        //turn(45.0);
         
         angle_right_to_shiny();
         
-        drive_straight(10);
         
-        find_strip_with_back();
+        turn(60.0);
+        drive_straight(-2);
+        turn(60.0);
         
-        follow_strip_back();
+        find_shiny();
         
+        back_to_end_of_line();
+        
+        step_treads(5, 5);
+        
+        exp_servo_deg(0, 150);
+        msleep(500L);
+        step_treads(-5, -5);
+        exp_servo_deg(0, 60);
+        msleep(500L);
+
+        for(i=0;i<10 && !stop_button();++i)
+          step_treads(-2, 2);
+        
+        /*
         if(0) {
             follow_strip_back();
             
@@ -137,5 +155,6 @@ void main() {
                 msleep(250L);
             }  
         }
+*/
     }
 }
