@@ -20,9 +20,10 @@ void drive_straight(int trans) {
     trans = abs(trans);
     trans += trans;
     
+    reset_system_time();
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
-    while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < trans) {
+    while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < trans && mseconds() < 10000L) {
         diff = abs(SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT);
         if(diff > 5)
           low_pwr = 0;
@@ -43,7 +44,7 @@ void drive_straight(int trans) {
     }
     
     ao();
-
+    
 }
 
 #else

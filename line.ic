@@ -94,15 +94,14 @@ void align_back_cw(void) {
             return;
         }
         
-        if(mask & FRONT_RIGHT_MASK ) { //Probably both are on strip; just right is unexpected
+        if(mask & FRONT_LEFT_MASK ) { //Probably both are on strip; just right is unexpected
             motor(MOTOR_LEFT,  100);
             motor(MOTOR_RIGHT, -100);
-        } else if(mask & FRONT_LEFT_MASK) {
+        } else if(mask & FRONT_RIGHT_MASK) {
             motor(MOTOR_LEFT, 100);
             motor(MOTOR_RIGHT, 100);
-        } else { //No optos on strip - bad - try to go find the strip again
-            motor(MOTOR_LEFT, -100);
-            motor(MOTOR_RIGHT, 100);
+        } else { //No optos on strip - assume we went off the end and are about lined up
+            step_treads(-4, -2);
             /*
             SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
             while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 20)
@@ -155,17 +154,18 @@ void follow_strip_forward(int left_bound)
     int readingL, readingR;
     
     
-/*
+    /*
     while(!start_button()) {
         printf("L%d R%d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
         sleep(0.05);
     }
 */  
+    reset_system_time();
     //follow along the left boundary
     if(left_bound) //(analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) && (analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD))
       {
         printf("Left\n");
-        while(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD)
+        while(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD && mseconds() < 7500L)
           {
             readingL=analog(OPTO_FRONT_LEFT);
             if(readingL > OPTO_THRESHOLD)
@@ -190,7 +190,7 @@ void follow_strip_forward(int left_bound)
     else //if((analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) && (analog(OPTO_FRONT_RIGHT) > OPTO_THRESHOLD))
       {
         printf("Right\n");
-        while(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD)
+        while(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && mseconds() < 7500L)
           {
             readingR=analog(OPTO_FRONT_RIGHT);
             if(readingR > OPTO_THRESHOLD)
@@ -202,7 +202,7 @@ void follow_strip_forward(int left_bound)
             
             else if(readingR < OPTO_THRESHOLD)
               {
-                motor(MOTOR_LEFT,MOT_PWR);
+                motor(MOTOR_LEFT, MOT_PWR);
                 readingR=analog(OPTO_FRONT_RIGHT);
             }
             
@@ -212,38 +212,42 @@ void follow_strip_forward(int left_bound)
     }
 }
 
-void follow_strip_back() 
+void follow_strip_back(int left) 
 {    
     int readingL, readingR;
     
     //follow back along left boundary
-    if((analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD) && (analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD))
+    if(left) //(analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD) && (analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD))
       {
-        while(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
+        reset_system_time();
+        printf("L%d R%d\n", analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
+        while(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && mseconds() < 7500L)
           {
             readingL=analog(OPTO_BACK_LEFT);
             if(readingL > OPTO_THRESHOLD)
               {
-                motor(MOTOR_LEFT,-MOT_PWR);
+                step_treads(-2,0);
                 readingL=analog(OPTO_BACK_LEFT);
+                
                 
             }
             
             else if(readingL < OPTO_THRESHOLD)
               {
-                motor(MOTOR_RIGHT,-MOT_PWR);
+                step_treads(0,-2);
                 readingL=analog(OPTO_BACK_LEFT);
             }
             
+            
             sleep(0.01);
-            ao();
         }
     }
     
     //follow back along right boundary
-    else if((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) && (analog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD))
+    else //if((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) && (analog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD))
       {
-        while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD)
+        reset_system_time();
+        while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && mseconds() < 7500L)
           {
             readingR=analog(OPTO_BACK_RIGHT);
             if(readingR > OPTO_THRESHOLD)

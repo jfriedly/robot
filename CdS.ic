@@ -18,17 +18,17 @@
  * start until the light comes on.  If the shield is missing, then it will
  * probably start just from ambient light.
  */
-void wait_for_start(void) {
-    printf("  Waiting for     start light\n");
+void wait_for_start(void) {        
     for(;;) {
-        printf("%d\n", analog(CDS_CELL));
-        if(analog(CDS_CELL) < CDS_THRESHOLD)
-          return;
+        if(analog(CDS_FRONT) < CDS_THRESHOLD) {
+            msleep(250L);
+            if(analog(CDS_FRONT) < CDS_THRESHOLD)     
+              return;
+        }
         if(start_button()) {
             while(start_button())
               ;
             return;
         }
-        sleep(0.1);
     }
 }

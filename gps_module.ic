@@ -1,6 +1,6 @@
 //Ryan Hartlage, Pat Wensing 2008-2010
 int _gps_data[5];
-int gps_x, gps_y, gps_heading, gps_gate, gps_solar;
+int gps_x, gps_y, gps_heading, gps_button, gps_bin;
 int _gps_continuous_pid = -1;
 
 /*-------------------------------------------------------------------------------------------------*/
@@ -101,8 +101,8 @@ int gps_get_data()
         gps_x = _gps_data[0]*16+(_gps_data[1]&0xFC)/4 - 288;
         gps_y = (_gps_data[1]&0x3)*256 + _gps_data[2]*4 + (_gps_data[3]&0x30)/16;
         gps_heading = (_gps_data[3]&0x0F)*16 + (_gps_data[4]&0x3C)/4;
-        gps_gate = _gps_data[4]&0x1;
-        gps_solar = ( _gps_data[4]&0x2 ) / 2;
+        gps_button = _gps_data[4]&0x1;
+        gps_bin = ( _gps_data[4]&0x2 ) / 2;
         
         // Clear ready flag (so that gps_ready(0) will return 0 until the next packet comes in)
         gps_clear(0);

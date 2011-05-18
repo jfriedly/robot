@@ -4,14 +4,29 @@
 
 int main() {
     int btn;
-    
-    start_process(temp_shaft_encdr(), 2, 32);
+    int i;
+    init_shaft_encoders();
     
     for(;;) {
         btn = press_button();
+        printf("Press a button\n");
         if(btn == BUTTON_START)
-          turn(45.0);
-        else
-          turn(-45.0);
+          cw_degrees(360.0);
+/*
+          for(i=0;i<20;++i) {
+              clockwise_18();
+              if(i%5 == 4)
+                msleep(300L);
+          }
+*/
+        else if (btn == BUTTON_STOP)
+          ccw_degrees(360.0);
+/*
+          for(i=0;i<20;++i) {
+              ctrclockwise_18();
+              if(i%5 == 4)
+                msleep(300L);
+          }
+*/
     }
 }

@@ -6,7 +6,8 @@ int main() {
     
     disp_l = disp_r = -1;
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-    start_process(temp_shaft_encdr(), 2, 32);
+    
+    init_shaft_encoders();
     
     for(;;) {
         if(stop_button())

@@ -1,25 +1,26 @@
-int encdr10_state = 0;
-int encdr12_state = 0;
+#use "defines.ic"
 
-int encoder10_counts = 0;
-int encoder12_counts = 0;
+int left_encoder_state = 0;
+int right_encoder_state = 0;
 
-#define SHAFT_LEFT_COUNT encoder10_counts
-#define SHAFT_RIGHT_COUNT encoder12_counts
+int SHAFT_LEFT_COUNT = 0;
+int SHAFT_RIGHT_COUNT = 0;
 
-int ctr=0;
+void init_shaft_encoders(void) {
+    start_process(check_shaft_encoders(), 2, 32);
+}
+
 
 ///substitute for FEH shaft encodr assembly
-void temp_shaft_encdr(void) {
+void check_shaft_encoders(void) {
     for(;;){        
-        if(encdr10_state ^ digital(10)) {
-            ++encoder10_counts;
-            encdr10_state = !encdr10_state;
+        if(left_encoder_state ^ digital(SHAFT_LEFT)) {
+            ++SHAFT_LEFT_COUNT;
+            left_encoder_state = !left_encoder_state;
         }
-        
-        if(encdr12_state ^ digital(12)) {
-            ++encoder12_counts;
-            encdr12_state = !encdr12_state;
+        if(right_encoder_state ^ digital(SHAFT_RIGHT)) {
+            ++SHAFT_RIGHT_COUNT;
+            right_encoder_state = !right_encoder_state;
         }
         
         defer();

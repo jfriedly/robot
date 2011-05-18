@@ -46,73 +46,204 @@ void step_treads2(int left, int right, long timeout) {
     //be nice to the motors
     sleep(0.1);
 }
+
+
 /**
  * @brief main entry point
  */
 void main() {
-    int arg[5];
-    int def[5]   = {  -5, 270,  25,  45, 100};
-    int i, disp;
+    int i, j;
     
-    //gps_initialize_knob();
-    //gps_enable();
+    gps_initialize_knob();
+    gps_enable();
     
-    exp_servo_min[0] = 400;
-    exp_servo_max[0] = 4000;
+    exp_servo_min[0] = exp_servo_min[3] = 400;
+    exp_servo_max[0] = exp_servo_max[3] = 4000;
     
     exp_servo_enable();
-    exp_servo_deg(0, 70);
+    exp_servo_deg(0, 0);
+    exp_servo_deg(3, 0);
     
-    start_process(temp_shaft_encdr(), 2, 32);
+    init_shaft_encoders();
     
-    
-    
+    sleep(1.0);
+    while(start_button())
+      ;
     
     for(;;) {
-        /*
-        for(i=0;i<5;++i) {
-            disp = -1;
-            while(!start_button()) {
-                arg[i] = def[i] + (knob() - 128) / 4;
-                if(arg[i] != disp) {
-                    disp = arg[i];
-                    printf("Step %d: %d\n", i, disp);
-                }
-            }
-            while(start_button())
-              ;
+        printf(" Press START to   start WINNING\n");
+        wait_for_start();
+        
+        drive_up_hill();
+        
+        turn(-70.0);
+        
+        msleep(1000L);
+        gps_good_data();
+        printf("Hdg: %d\n", gps_heading);
+        while(abs(gps_heading - 85) > 3) {
+            turn((float)(85 - gps_heading)*0.75);
+            msleep(1000L);
+            gps_good_data();
+            gps_good_data();
+            printf("Hdg: %d\n", gps_heading);
         }
-        */
         
-        printf("Press start\n");
-        press_start();
+        /*        
+        while(!digital(SWITCH_FRONT_LEFT) && digital(SWITCH_FRONT_RIGHT)) {
+            if(!digital(SWITCH_FRONT_LEFT))
+              motor(MOTOR_LEFT, 100);
+            else
+              motor(MOTOR_LEFT, 0);
+            
+            if(digital(SWITCH_FRONT_RIGHT))
+              motor(MOTOR_RIGHT, 100);
+            else
+              motor(MOTOR_RIGHT, 0);
+               
+        }
+*/
+        //        turn(-72.5);
         
-        drive_straight(30);
-        turn(-45.0);
-        //turn(45.0);
         
-        angle_right_to_shiny();
+        drive_back_to_shiny(1);
         
+        drive_back_to_shiny(0);
+        
+        printf("Calling FSB\n");
+        follow_strip_back(1);
+        
+        drive_straight(-3);
+        
+        exp_servo_deg(3, 90);
+        msleep(1000L);
+        exp_servo_deg(3, 0);
+        
+        gps_good_data();
+        printf("   PRESS START  Button: %d\n", gps_button);
+        
+        for(i=0;!gps_button && i<5;++i) {
+            motor(MOTOR_LEFT, -100);
+            motor(MOTOR_RIGHT, -100);
+            msleep(1000L);
+            
+            drive_straight(3);
+            msleep(500L);
+            gps_good_data();
+            printf("   PRESS START  Button: %d\n", gps_button);
+        }
+        
+        drive_straight(15);
+        turn(62.5);
+        
+        drive_forward_to_shiny();
+        
+        drive_back_to_shiny(1);
+        
+        align_back_cw();
+        
+        follow_strip_back(1);
+        
+        motor(MOTOR_LEFT, -80);
+        motor(MOTOR_RIGHT, -80);
+        msleep(750L);
+        ao();
+        
+        turn_slow(-10.0);
+        turn_slow(20.0);
+        turn_slow(-10.0);
+        
+        motor(MOTOR_LEFT, 70);
+        motor(MOTOR_RIGHT, 70);
+        msleep(100L);
+        
+        drive_straight(5);
+        turn_slow(30.0);
+        drive_straight(20);
+        turn_slow(30.0);
+        drive_straight(55);
+        
+        turn_slow(-20.0);
         drive_straight(10);
+        turn_slow(-20.0);
         
-        turn_cw_to_shiny();
-        
-        follow_strip_forward(1);
-        
-        drive_straight(-15);
-        exp_servo_deg(0, 180);
+        drive_down_hill();       
+    }
+}
+
+#if 0
+drive_straight(30);
+//turn_to_135();
+turn(-20.0);
+
+printf("Right to shiny\n");
+angle_right_to_shiny();
+
+printf("Step forward\n");
+drive_straight(10);
+
+printf("CW to shiny\n");
+turn_cw_to_shiny();
+
+printf("follow 2\n");
+follow_strip_forward(1);
+
+printf("Back up for clearance\n");
+reset_system_time();
+while(mseconds() < 3000L) {
+    i = analog(CDS_FRONT);
+    if(i < 15)
+      printf("%d: RED\n", i);
+    else if(i < 30)
+      printf("%d: BLUE\n", i);
+    else
+    printf("%d: NONE\n", i);
+    msleep(150L);
+}
+drive_straight(-15);
+exp_servo_deg(0, 160);
+
+printf("Waiting for button\n");
+//        press_start();
+sleep(1.0);
+
+printf("Approaching corn\n");
+follow_strip_forward(1);
+drive_straight(-4);
+
+printf("Picking corn");
+exp_servo_deg(0, 50);
+sleep(0.2);
+
+printf(".");
+step_treads2(-10, -10, 2000L);
+printf(".");
+step_treads2(-10, -10, 2000L);
+printf(".");
+step_treads2(-10, -10, 2000L);
+printf(".");
+step_treads2(-10, -10, 2000L);
+printf("Done\n");
+
+exp_servo_deg(0, 20);
+
+
+
+/*turn(-45.0);
+        get_to_start();
         press_start();
         
-        follow_strip_forward(1);
-        drive_straight(-4);
-        //try to turn and knock corn off of magnet
-        exp_servo_deg(0,135);
-        sleep(0.2);
-        turn(40.0);
-        exp_servo_deg(0, 90);
-        press_start();
+        motor(MOTOR_RIGHT, 100);    
+        motor(MOTOR_LEFT, 80);
         
-        /*
+        while(!start_button())
+          ;
+        
+        ao();
+        */
+turn((float)i);
+step_treads2(2000, 2000, 5000L);
+/*
         while(!stop_button()) {
             SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
             motor(MOTOR_LEFT, -100);
@@ -123,16 +254,7 @@ void main() {
             ao();
             msleep(250L);
          }
+`
 */
-        
-        SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-        motor(MOTOR_LEFT, -100);
-        motor(MOTOR_RIGHT, -100);
-        reset_system_time();
-        while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 20 && mseconds() < 2000L)
-          ;
-        ao();
-        
-        
-    }
-}
+
+#endif

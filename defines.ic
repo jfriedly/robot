@@ -2,17 +2,25 @@
 #define MOTOR_RIGHT 3
 #define MOT_PWR 100
 
-#define OPTO_FRONT_LEFT  4
-#define OPTO_FRONT_RIGHT 6
+#define OPTO_FRONT_LEFT  20
+#define OPTO_FRONT_RIGHT 22
 #define OPTO_BACK_LEFT   3
 #define OPTO_BACK_RIGHT  2
 
-#define CDS_CELL 16
+#define SHAFT_LEFT 7
+#define SHAFT_RIGHT 12
 
-#define FRONT_RIGHT_SWITCH 15
+#define CDS_CELL 16
+#define CDS_FRONT 18
+
+#define SWITCH_WALL_RIGHT 15
+#define SWITCH_BACK_LEFT   8
+#define SWITCH_WALL_LEFT  10
+#define SWITCH_FRONT_LEFT  9
+#define SWITCH_FRONT_RIGHT 11
 
 
 #define OPTO_THRESHOLD 50
-#define CDS_THRESHOLD 30
+#define CDS_THRESHOLD 20
 
 #use "encoders.ic"

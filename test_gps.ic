@@ -1,0 +1,51 @@
+#use "defines.ic"
+#use "util.ic"
+#use "gps_module.ic"
+#use "gps_module.icb"
+
+
+void print4(int n) {
+    if(n > 0)
+      printf("+");
+    printf("%d", n);
+    if(abs(n) < 100) {
+        printf(" ");
+        if(abs(n) < 10)
+          printf(" ");
+    }
+}
+
+void gps_good_data(void) {
+    ao();
+    msleep(250L);
+    for(;;) {
+        
+        while(!gps_get_data())
+          ;
+        
+        if(gps_y <= 256)
+          break;
+    }
+}
+
+int main() {
+    gps_initialize_knob();
+    gps_enable();
+    for(;;) {
+        gps_good_data();
+        
+        printf("X:");
+        print4(gps_x);
+        printf("  ");
+        
+        printf("Y:");
+        print4(gps_y);
+        printf("  ");
+        
+        printf("H:");
+        print4(gps_heading);
+        printf("  ");
+        
+        printf("E:%d B:%d\n", gps_gate, gps_solar);
+    }
+}
