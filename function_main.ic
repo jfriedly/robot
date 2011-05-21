@@ -15,6 +15,7 @@
 #use "line.ic"
 #use "drive-straight.ic"
 
+#define RED_BUTTON_TRIES 2
 
 void step_treads2(int left, int right, long timeout) {
     int left_dir = 100, right_dir = 100;
@@ -57,12 +58,12 @@ void main() {
     gps_initialize_knob();
     gps_enable();
     
-    exp_servo_min[0] = exp_servo_min[3] = 400;
-    exp_servo_max[0] = exp_servo_max[3] = 4000;
+    exp_servo_min[SERVO_CORN] = exp_servo_min[SERVO_HAY] = 400;
+    exp_servo_max[SERVO_CORN] = exp_servo_max[SERVO_HAY] = 4000;
     
     exp_servo_enable();
-    exp_servo_deg(0, 0);
-    exp_servo_deg(3, 0);
+    exp_servo_deg(SERVO_CORN, 0);
+    exp_servo_deg(SERVO_HAY, 0);
     
     init_shaft_encoders();
     
@@ -78,80 +79,64 @@ void main() {
         
         turn(-70.0);
         
-        msleep(1000L);
-        gps_good_data();
-        printf("Hdg: %d\n", gps_heading);
-        while(abs(gps_heading - 85) > 3) {
-            turn((float)(85 - gps_heading)*0.75);
-            msleep(1000L);
-            gps_good_data();
-            gps_good_data();
-            printf("Hdg: %d\n", gps_heading);
-        }
+        gps_turn(85, 5);
         
-        /*        
-        while(!digital(SWITCH_FRONT_LEFT) && digital(SWITCH_FRONT_RIGHT)) {
-            if(!digital(SWITCH_FRONT_LEFT))
-              motor(MOTOR_LEFT, 100);
-            else
-              motor(MOTOR_LEFT, 0);
-            
-            if(digital(SWITCH_FRONT_RIGHT))
-              motor(MOTOR_RIGHT, 100);
-            else
-              motor(MOTOR_RIGHT, 0);
-               
-        }
-*/
-        //        turn(-72.5);
+        drive_back_to_shiny(1, 2000L);
         
+        gps_turn(80, 5);
         
-        drive_back_to_shiny(1);
+        drive_back_to_shiny(0, 1500L);
         
-        drive_back_to_shiny(0);
-        
-        printf("Calling FSB\n");
         follow_strip_back(1);
         
         drive_straight(-3);
         
-        exp_servo_deg(3, 90);
-        msleep(1000L);
-        exp_servo_deg(3, 0);
+        exp_servo_deg(SERVO_HAY, 45);
+        msleep(250L);
+        exp_servo_deg(SERVO_HAY, 90);
+        msleep(250L);
+        exp_servo_deg(SERVO_HAY, 0);
+        msleep(250L);
         
         gps_good_data();
-        printf("   PRESS START  Button: %d\n", gps_button);
-        
-        for(i=0;!gps_button && i<5;++i) {
+        for(i=0;!gps_button && i < RED_BUTTON_TRIES;++i) {
             motor(MOTOR_LEFT, -100);
             motor(MOTOR_RIGHT, -100);
-            msleep(1000L);
-            
-            drive_straight(3);
             msleep(500L);
+            
+            motor(MOTOR_LEFT, 100);
+            motor(MOTOR_RIGHT, 100);
+            msleep(200L);
             gps_good_data();
-            printf("   PRESS START  Button: %d\n", gps_button);
         }
         
         drive_straight(15);
         turn(62.5);
         
-        drive_forward_to_shiny();
+        gps_turn(100, 5);
         
-        drive_back_to_shiny(1);
+        drive_forward_to_shiny(2000L);
         
-        align_back_cw();
+        drive_back_to_shiny(1, 500L);
+        
+        drive_straight(-7);
+        turn(-90.0);
+        
+        dance_to_strip();
+        
+        printf("START\n");
+        press_start();
         
         follow_strip_back(1);
         
         motor(MOTOR_LEFT, -80);
         motor(MOTOR_RIGHT, -80);
-        msleep(750L);
+        msleep(125L);
         ao();
         
-        turn_slow(-10.0);
-        turn_slow(20.0);
-        turn_slow(-10.0);
+        turn_slow(10.0);
+        turn_slow(-20.0);
+        turn_slow(10.0);
         
         motor(MOTOR_LEFT, 70);
         motor(MOTOR_RIGHT, 70);
@@ -159,9 +144,9 @@ void main() {
         
         drive_straight(5);
         turn_slow(30.0);
-        drive_straight(20);
+        drive_straight(10);
         turn_slow(30.0);
-        drive_straight(55);
+        drive_straight(40);
         
         turn_slow(-20.0);
         drive_straight(10);
@@ -170,91 +155,3 @@ void main() {
         drive_down_hill();       
     }
 }
-
-#if 0
-drive_straight(30);
-//turn_to_135();
-turn(-20.0);
-
-printf("Right to shiny\n");
-angle_right_to_shiny();
-
-printf("Step forward\n");
-drive_straight(10);
-
-printf("CW to shiny\n");
-turn_cw_to_shiny();
-
-printf("follow 2\n");
-follow_strip_forward(1);
-
-printf("Back up for clearance\n");
-reset_system_time();
-while(mseconds() < 3000L) {
-    i = analog(CDS_FRONT);
-    if(i < 15)
-      printf("%d: RED\n", i);
-    else if(i < 30)
-      printf("%d: BLUE\n", i);
-    else
-    printf("%d: NONE\n", i);
-    msleep(150L);
-}
-drive_straight(-15);
-exp_servo_deg(0, 160);
-
-printf("Waiting for button\n");
-//        press_start();
-sleep(1.0);
-
-printf("Approaching corn\n");
-follow_strip_forward(1);
-drive_straight(-4);
-
-printf("Picking corn");
-exp_servo_deg(0, 50);
-sleep(0.2);
-
-printf(".");
-step_treads2(-10, -10, 2000L);
-printf(".");
-step_treads2(-10, -10, 2000L);
-printf(".");
-step_treads2(-10, -10, 2000L);
-printf(".");
-step_treads2(-10, -10, 2000L);
-printf("Done\n");
-
-exp_servo_deg(0, 20);
-
-
-
-/*turn(-45.0);
-        get_to_start();
-        press_start();
-        
-        motor(MOTOR_RIGHT, 100);    
-        motor(MOTOR_LEFT, 80);
-        
-        while(!start_button())
-          ;
-        
-        ao();
-        */
-turn((float)i);
-step_treads2(2000, 2000, 5000L);
-/*
-        while(!stop_button()) {
-            SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-            motor(MOTOR_LEFT, -100);
-            motor(MOTOR_RIGHT, -100);
-            reset_system_time();
-            while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 20 && mseconds() < 2000L)
-              ;
-            ao();
-            msleep(250L);
-         }
-`
-*/
-
-#endif

@@ -93,22 +93,18 @@ void align_back_cw(void) {
             ao();
             return;
         }
-        
-        if(mask & FRONT_LEFT_MASK ) { //Probably both are on strip; just right is unexpected
+/*
+        if(mask & FRONT_RIGHT_MASK ) { //Probably both are on strip; just right is unexpected
             motor(MOTOR_LEFT,  100);
             motor(MOTOR_RIGHT, -100);
-        } else if(mask & FRONT_RIGHT_MASK) {
+        } else 
+*/
+          if((mask & (FRONT_LEFT_MASK | FRONT_RIGHT_MASK)) == FRONT_LEFT_MASK) {
             motor(MOTOR_LEFT, 100);
             motor(MOTOR_RIGHT, 100);
         } else { //No optos on strip - assume we went off the end and are about lined up
-            step_treads(-4, -2);
-            /*
-            SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-            while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 20)
-              step_straight_back();
-            turn(30.0);
-            drive_forward_to_shiny();
-*/
+            motor(MOTOR_LEFT, 100);
+            motor(MOTOR_RIGHT, -100);
         }
         
     }

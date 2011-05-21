@@ -8,27 +8,13 @@
 #use "defines.ic"
 #use "util.ic"
 #use "line.ic"
-#use "gps_module.ic"
-#use "gps_module.icb"
+#use "gps.ic"
 #use "servo/exp_servo_lib.ic"
 
 /// Wait for this many loops to confirm we're over something shiny (ie, aluminum strips)
-#define SHINY_TIME 2
+#define SHINY_TIME 1
 ///If the treads differ by this many counts while trying to drive straight, stop the advanced one
 #define TREAD_DISPARITY 5
-
-void gps_good_data(void) {
-    ao();
-    msleep(250L);
-    for(;;) {
-        
-        while(!gps_get_data())
-          ;
-        
-        if(gps_y <= 256)
-          break;
-    }
-}
 
 
 /**
@@ -44,12 +30,13 @@ void drive_up_hill() {
     
     //Drive across the bumps and up the hill - angle right when off wall
     motor(MOTOR_LEFT, 100);
-    while(shiny_ctr < SHINY_TIME && !start_button()) {
+    reset_system_time();
+    while(shiny_ctr < SHINY_TIME && !start_button() && mseconds() < 5500L) {
         //If the switch is pressed, go straight.  Otherwise angle right.
         if(digital(SWITCH_WALL_RIGHT))
           motor(MOTOR_RIGHT,100);
         else
-          motor(MOTOR_RIGHT, 80);
+          motor(MOTOR_RIGHT, 90);
         
         //Check the optos
         if(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD && analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) {
@@ -62,13 +49,15 @@ void drive_up_hill() {
     printf("Front on shiny\n");
     //Go straight (ish) until the front sensors are off the shiny
     motor(MOTOR_RIGHT, 100);
-    while((analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD || analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) && !start_button())
+    reset_system_time();
+    while((analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD || analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) && !start_button() && mseconds() < 500L)
       ;
     
     printf("Looking for back\n");
     //Go straight (ish) until the rear optos are on the shiny
     shiny_ctr = 0;
-    while(shiny_ctr < SHINY_TIME && !start_button()) {
+    reset_system_time();
+    while(shiny_ctr < SHINY_TIME && !start_button() && mseconds() < 1000L) {
         if(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
@@ -154,7 +143,7 @@ void step_straight_forward(int disparity) {
 }
 
 //Drive backwards until we hit a metal strip.  Stop with the back optos just past it.
-void drive_back_to_shiny(int go_to_front) {
+void drive_back_to_shiny(int go_to_front, long timeout) {
     int shiny_ctr = 0;
     int high_water = 0;
     
@@ -163,7 +152,7 @@ void drive_back_to_shiny(int go_to_front) {
     reset_system_time();
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
-    while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < 10000L) {
+    while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < timeout) {
         if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
@@ -174,24 +163,32 @@ void drive_back_to_shiny(int go_to_front) {
     }
     
     if(go_to_front) {
+        int l,r;
+        
+        l=r=-1;
+        
         printf("Going til back off\n");
         //Continue until the back optos are off of the shiny
-        reset_system_time();
         SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-        while((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < 3000L);
+        while((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < timeout)
           step_straight_back(3);
         
         ao();
-        exp_servo_deg(0, 5);
-        exp_servo_deg(0, 5);
-        msleep(250L);
+        //        exp_servo_deg(0, 5);
+        //        exp_servo_deg(0, 5);
+        //        msleep(250L);
         
         printf("Finding front optos\n");
-        reset_system_time();
         SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
         shiny_ctr = 0;
-        while(shiny_ctr < SHINY_TIME) {
-            if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD && mseconds() < 10000L) {
+        while(shiny_ctr < SHINY_TIME && mseconds() < timeout) {
+            if(l!=analog(OPTO_FRONT_LEFT) || r!=analog(OPTO_FRONT_RIGHT)) {
+                l = analog(OPTO_FRONT_LEFT);
+                r = analog(OPTO_FRONT_RIGHT);
+                printf("%d %d\n", l, r);
+            }
+            
+            if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
                 ++shiny_ctr;
             } else {
                 shiny_ctr = 0;
@@ -207,7 +204,7 @@ void drive_back_to_shiny(int go_to_front) {
 }
 
 //Drive forward until we hit a metal strip.  Stop with the back optos just past it.
-void drive_forward_to_shiny(void) {
+void drive_forward_to_shiny(long timeout) {
     int shiny_ctr = 0;
     int high_water = 0;
     
@@ -215,7 +212,8 @@ void drive_forward_to_shiny(void) {
     
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
-    while(shiny_ctr < SHINY_TIME && !stop_button()) {
+    reset_system_time();
+    while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < timeout) {
         if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
@@ -227,12 +225,12 @@ void drive_forward_to_shiny(void) {
     
     //Continue until the back optos are off of the shiny
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-    while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD)
+    while((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < timeout)
       step_straight_forward(4);
     
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     shiny_ctr = 0;
-    while(shiny_ctr < SHINY_TIME && !stop_button()) {
+    while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < timeout) {
         if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
@@ -617,7 +615,7 @@ void ccw_degrees_slow(float deg) {
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     reset_system_time();
     
-    while(mseconds() < 5000L)
+    while(mseconds() < 2000L)
       {
         diff_l = SHAFT_LEFT_COUNT - left_trans;
         diff_r = SHAFT_RIGHT_COUNT - right_trans;
@@ -644,7 +642,7 @@ void cw_degrees_slow(float deg) {
     reset_system_time();
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
-    while(mseconds() < 5000L)
+    while(mseconds() < 2000L)
       {
         diff_l = SHAFT_LEFT_COUNT - left_trans;
         diff_r = SHAFT_RIGHT_COUNT - right_trans;
@@ -658,4 +656,14 @@ void cw_degrees_slow(float deg) {
     }
     
     ao();
+}
+
+void dance_to_strip() {
+    int dist = 1;
+    int dir = 1;
+    while(analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD && dist < 19) {
+        step_treads(dist * dir,-dist * dir);
+        dist+=2;
+        dir *= -1;
+    }
 }

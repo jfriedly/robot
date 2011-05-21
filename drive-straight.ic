@@ -23,7 +23,7 @@ void drive_straight(int trans) {
     reset_system_time();
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
-    while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < trans && mseconds() < 10000L) {
+    while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < trans && mseconds() < 5000L) {
         diff = abs(SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT);
         if(diff > 5)
           low_pwr = 0;
