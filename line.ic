@@ -93,13 +93,13 @@ void align_back_cw(void) {
             ao();
             return;
         }
-/*
+        /*
         if(mask & FRONT_RIGHT_MASK ) { //Probably both are on strip; just right is unexpected
             motor(MOTOR_LEFT,  100);
             motor(MOTOR_RIGHT, -100);
         } else 
 */
-          if((mask & (FRONT_LEFT_MASK | FRONT_RIGHT_MASK)) == FRONT_LEFT_MASK) {
+        if((mask & (FRONT_LEFT_MASK | FRONT_RIGHT_MASK)) == FRONT_LEFT_MASK) {
             motor(MOTOR_LEFT, 100);
             motor(MOTOR_RIGHT, 100);
         } else { //No optos on strip - assume we went off the end and are about lined up
@@ -128,7 +128,8 @@ void step_treads(int left, int right) {
     
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
-    while(SHAFT_LEFT_COUNT < left || SHAFT_RIGHT_COUNT < right) {
+    reset_system_time();
+    while((SHAFT_LEFT_COUNT < left || SHAFT_RIGHT_COUNT < right) && mseconds() < 3000L) {
         if(SHAFT_LEFT_COUNT < left)
           motor(MOTOR_LEFT, left_dir);
         else
@@ -217,25 +218,32 @@ void follow_strip_back(int left)
       {
         reset_system_time();
         printf("L%d R%d\n", analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
-        while(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && mseconds() < 7500L)
+        for(;;)
           {
-            readingL=analog(OPTO_BACK_LEFT);
-            if(readingL > OPTO_THRESHOLD)
+            while(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && mseconds() < 7500L)
               {
-                step_treads(-2,0);
                 readingL=analog(OPTO_BACK_LEFT);
+                if(readingL > OPTO_THRESHOLD)
+                  {
+                    motor(MOTOR_LEFT, -100);
+                    motor(MOTOR_RIGHT, 0);
+                    readingL=analog(OPTO_BACK_LEFT);
+                }
                 
-                
+                else //if(readingL < OPTO_THRESHOLD)
+                  {
+                    motor(MOTOR_LEFT, 0);
+                    motor(MOTOR_RIGHT, -100);
+                    readingL=analog(OPTO_BACK_LEFT);
+                }
             }
             
-            else if(readingL < OPTO_THRESHOLD)
-              {
-                step_treads(0,-2);
-                readingL=analog(OPTO_BACK_LEFT);
+            ao();
+            msleep(5L);
+            if(analog(OPTO_BACK_RIGHT) >= OPTO_THRESHOLD) {
+                printf("%d %d\n", analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
+                break;
             }
-            
-            
-            sleep(0.01);
         }
     }
     

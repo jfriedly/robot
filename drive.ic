@@ -34,7 +34,7 @@ void drive_up_hill() {
     //Drive across the bumps and up the hill - angle right when off wall
     motor(MOTOR_LEFT, 100);
     reset_system_time();
-    while(shiny_ctr < SHINY_TIME && !start_button() && mseconds() < 5500L) {
+    while(shiny_ctr < SHINY_TIME && !start_button() && mseconds() < 6000L) {
         //If the switch is pressed, go straight.  Otherwise angle right.
         if(digital(SWITCH_WALL_RIGHT))
           motor(MOTOR_RIGHT,100);
@@ -60,7 +60,7 @@ void drive_up_hill() {
     //Go straight (ish) until the rear optos are on the shiny
     shiny_ctr = 0;
     reset_system_time();
-    while(shiny_ctr < SHINY_TIME && !start_button() && mseconds() < 1000L) {
+    while(shiny_ctr < SHINY_TIME && !start_button() && mseconds() < 1500L) {
         if(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
@@ -87,13 +87,13 @@ void drive_down_hill() {
     printf("Going down hill\n");
     
     //Drive across the bumps and up the hill - angle right when off wall
-    motor(MOTOR_RIGHT, 90);
-    while(digital(SWITCH_FRONT_LEFT)) {
+    motor(MOTOR_RIGHT, 100);
+    while(1) {
         //If the switch is pressed, go straight.  Otherwise angle right.
         if(digital(SWITCH_WALL_LEFT))
-          motor(MOTOR_LEFT,90);
+          motor(MOTOR_LEFT,100);
         else
-          motor(MOTOR_LEFT, 75);
+          motor(MOTOR_LEFT, 60);
     }
     
     for(i=0; i<7; ++i) {
@@ -744,3 +744,44 @@ void dance_to_strip() {
         dir *= -1;
     }
 }
+
+
+void pull_wagon(void) {
+    step_treads(3, 3);        
+    step_treads(0, 16);
+    step_treads(10, 12);
+    step_treads(0, 16);
+    step_treads(23, 23);
+    step_treads(14, 0);
+    step_treads(12, 10);
+    step_treads(14, 0);
+    step_treads(12, 10);
+    step_treads(14, 0);
+}
+
+void curve_to_wagon() {
+    int shiny_ctr = 0;
+    
+    step_treads(10,10);
+    reset_system_time();
+    
+    motor(MOTOR_RIGHT, 75);
+    motor(MOTOR_LEFT, 100);
+    while(mseconds() < 1750L);
+    ao();
+    sleep(0.05);
+    
+    /*reset_system_time();
+    while(shiny_ctr < SHINY_TIME) {
+        if (analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) {
+            ++shiny_ctr;
+        } else {
+            shiny_ctr = 0;
+        }
+        motor(MOTOR_RIGHT, -100);
+        motor(MOTOR_LEFT, -50);
+    }*/
+}
+    
+        
+    

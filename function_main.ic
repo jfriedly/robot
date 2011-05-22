@@ -15,7 +15,7 @@
 #use "line.ic"
 #use "drive-straight.ic"
 
-#define RED_BUTTON_TRIES 2
+#define RED_BUTTON_TRIES 4
 
 void step_treads2(int left, int right, long timeout) {
     int left_dir = 100, right_dir = 100;
@@ -53,7 +53,8 @@ void step_treads2(int left, int right, long timeout) {
  * @brief main entry point
  */
 void main() {
-    int i, j;
+    
+    int i, j, old;
     
     gps_initialize_knob();
     gps_enable();
@@ -71,19 +72,19 @@ void main() {
     while(start_button())
       ;
     
-    for(;;) {
-        printf(" Press START to   start WINNING\n");
+    for(;;) {     
+        printf("Are you ready tostart WINNING?\n");
         wait_for_start();
         
         drive_up_hill();
         
         turn(-70.0);
         
-        gps_turn(85, 5);
+        gps_turn(85, 4);
         
-        drive_back_to_shiny(1, 2000L);
+        drive_back_to_shiny(1, 2250L);
         
-        gps_turn(80, 5);
+        gps_turn(82, 4);
         
         drive_back_to_shiny(0, 1500L);
         
@@ -110,7 +111,7 @@ void main() {
             gps_good_data();
         }
         
-        drive_straight(15);
+        /*drive_straight(15);
         turn(62.5);
         
         gps_turn(100, 5);
@@ -122,12 +123,16 @@ void main() {
         drive_straight(-7);
         turn(-90.0);
         
-        dance_to_strip();
+        dance_to_strip();*/
         
-        printf("START\n");
+        curve_to_wagon();
+        step_treads(-10,-10);
+        turn(-30.0);
+        drive_back_to_shiny(0,2000L);
+        follow_strip_back(0);
+        printf("LO%d LR%d", analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
+        
         press_start();
-        
-        follow_strip_back(1);
         
         motor(MOTOR_LEFT, -80);
         motor(MOTOR_RIGHT, -80);
@@ -138,20 +143,12 @@ void main() {
         turn_slow(-20.0);
         turn_slow(10.0);
         
-        motor(MOTOR_LEFT, 70);
-        motor(MOTOR_RIGHT, 70);
-        msleep(100L);
+        pull_wagon();
         
-        drive_straight(5);
-        turn_slow(30.0);
-        drive_straight(10);
-        turn_slow(30.0);
-        drive_straight(40);
+        drive_down_hill();
         
-        turn_slow(-20.0);
-        drive_straight(10);
-        turn_slow(-20.0);
+        ao();
         
-        drive_down_hill();       
+        
     }
 }

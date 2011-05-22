@@ -16,12 +16,15 @@
 #define SWITCH_WALL_RIGHT 15
 #define SWITCH_BACK_LEFT   8
 #define SWITCH_WALL_LEFT  10
-#define SWITCH_FRONT_LEFT  9
+#define SWITCH_BACK_RIGHT 27
 
 #define SERVO_CORN 0
 #define SERVO_HAY 3
 
 #define OPTO_THRESHOLD 50
 #define CDS_THRESHOLD 20
+
+/// Wait for this many loops to confirm we're over something shiny (ie, aluminum strips)
+#define SHINY_TIME 1
 
 #use "encoders.ic"

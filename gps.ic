@@ -1,0 +1,38 @@
+#use "util.ic"
+#use "gps_module.ic"
+#use "gps_module.icb"
+#use "drive.ic"
+
+void gps_good_data(void) {
+    ao();
+    msleep(250L);
+    for(;;) {
+        
+        while(!gps_get_data())
+          ;
+        
+        if(gps_y <= 256)
+          break;
+    }
+}
+
+void gps_turn(int ang, int tol) {
+    int offs = 0;
+    int g, a;
+    
+    if(ang < 45 || ang > 135)
+      offs = 90;
+    
+    for(;;) {
+        msleep(500L);
+        gps_good_data();
+        
+        g = (gps_heading + offs) % 180;
+        a = (ang + offs) % 180;
+        
+        if(abs(g-a) < tol)
+          break;
+        
+        turn((float)(a-g) * 0.5);
+    }
+}

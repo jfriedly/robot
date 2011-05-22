@@ -1,0 +1,40 @@
+#use "defines.ic"
+
+int switch_pressed(int sw) {
+    if(sw == SWITCH_BACK_RIGHT)
+      return !digital(SWITCH_BACK_RIGHT);
+    else
+      return digital(SWITCH_BACK_LEFT);
+}
+
+
+void back_to_wall(void) {
+    int l;
+    reset_system_time();
+    while(mseconds() < 3000L) {
+        if(switch_pressed(SWITCH_BACK_LEFT)) {
+            l = 0;
+            motor(MOTOR_LEFT, 0);
+        } else {
+            l = 1;
+            motor(MOTOR_LEFT, -100);
+        }
+        
+        if(switch_pressed(SWITCH_BACK_RIGHT)) {
+            motor(MOTOR_RIGHT, 0);
+            if(l == 0)
+              break;
+        } else
+          motor(MOTOR_RIGHT, -100);
+      }
+}
+
+void corn_to_start(void) {
+    turn(-90.0);
+    back_to_wall();
+    
+    drive_straight(50);
+    turn(-45.0);
+    
+    drive_straight(50);
+}
