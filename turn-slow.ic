@@ -1,0 +1,106 @@
+/**
+ * @file turn-slow.ic
+ * @brief Code to do many of the same turns as in turn.ic just slower so that we can keep the wagon attached.
+ * @author Andrew Krieger and Joel Friedly
+ * @date 5/23/2011
+ */
+
+#use "defines.ic"
+#use "drive.ic"
+#use "servo/exp_servo_lib.ic"
+#use "servo/exp_servo_calibrate.ic"
+#use "CdS.ic"
+#use "line.ic"
+#use "drive-straight.ic"
+#use "turn-slow.ic"
+#use "turn.ic"
+#use "step.ic"
+#use "gps.ic"
+#use "line.ic"
+
+
+/**
+ * @brief Turn by deg, relative to current position
+ * @param deg Degrees to turn.  Positive is CCW, negative is CW.
+ *
+ * This will repeatedly call [c]cw_degrees to turn.  This turns with less motor power
+ * than the regular @ref turn function.
+ */
+void turn_slow(float deg) {
+    if(deg > 0.0) {
+        while(deg > 45.0) {
+            ccw_degrees_slow(45.0);
+            deg -= 45.0;
+        }
+        
+        ccw_degrees_slow(deg);
+    } else if(deg < 0.0) {
+        while(deg < -45.0) {
+            cw_degrees_slow(45.0);
+            deg += 45.0;
+        }
+        
+        cw_degrees_slow(-deg);
+    }
+}
+
+/**
+ * @brief Helper function to slowly turn counterclockwise
+ * @param deg Number of degrees to turn (must be nonnegative)
+ */
+void ccw_degrees_slow(float deg) {
+    int left_trans = round(deg * (92.5 / 360.0));
+    int right_trans = round(deg * (92.5 / 360.0));
+    int diff_l, diff_r;
+    
+    //    printf("Turning %f deg\n", deg);
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    reset_system_time();
+    
+    while(mseconds() < 2000L)
+      {
+        diff_l = SHAFT_LEFT_COUNT - left_trans;
+        diff_r = SHAFT_RIGHT_COUNT - right_trans;
+        
+        if(diff_l + diff_r > 1)
+          break;
+        
+        motor(MOTOR_LEFT, -70);
+        motor(MOTOR_RIGHT, 70);
+        
+    }
+    
+    ao();
+}
+
+/**
+ * @brief Helper function to slowly turn clockwise.
+ * @param deg Number of degrees to turn (must be nonnegative) 
+ */
+void cw_degrees_slow(float deg) {
+    
+    int left_trans = round(deg * (92.5 / 360.0));
+    int right_trans = round(deg * (92.5 / 360.0));
+    int disp_l, disp_r;
+    int diff_l, diff_r;
+    
+    reset_system_time();
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    while(mseconds() < 2000L)
+      {
+        diff_l = SHAFT_LEFT_COUNT - left_trans;
+        diff_r = SHAFT_RIGHT_COUNT - right_trans;
+        
+        if(diff_l + diff_r > 1)
+          break;
+        
+        motor(MOTOR_LEFT, 70);
+        motor(MOTOR_RIGHT, -70);
+        
+    }
+    
+    ao();
+}
+

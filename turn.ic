@@ -1,0 +1,127 @@
+/**
+ * @file turn.ic
+ * @brief Code to do all turns. (Does not include code for functions that make the robot drive mostly straight, curving code can be found in drive.ic)
+ * @author Andrew Krieger and Joel Friedly
+ * @date 5/23/2011
+ */
+
+#use "defines.ic"
+#use "drive.ic"
+#use "servo/exp_servo_lib.ic"
+#use "servo/exp_servo_calibrate.ic"
+#use "CdS.ic"
+#use "line.ic"
+#use "drive-straight.ic"
+#use "turn-slow.ic"
+#use "turn.ic"
+#use "step.ic"
+#use "gps.ic"
+#use "line.ic"
+
+
+/**
+ * @brief Turn by deg, relative to current position
+ * @param deg Degrees to turn.  Positive is CCW, negative is CW.
+ *
+ * This will repeatedly call [c]cw_degrees to turn.
+ */
+void turn(float deg) {
+    if(deg > 0.0) {
+        while(deg > 45.0) {
+            ccw_degrees(45.0);
+            deg -= 45.0;
+        }
+        
+        ccw_degrees(deg);
+    } else if(deg < 0.0) {
+        while(deg < -45.0) {
+            cw_degrees(45.0);
+            deg += 45.0;
+        }
+        
+        cw_degrees(-deg);
+    }
+}
+
+/** 
+ * @brief Attempt to turn a given number of degrees counterclockwise
+ * @param deg Number of degrees to turn (must be nonnegative)
+ *
+ * This function ought to turn exactly deg degrees counterclockwise, but
+ * it hasn't been measured too recently.  Exactly how accurate it is is not
+ * currently known.
+ */
+void ccw_degrees(float deg) {
+    int left_trans = round(deg * (92.5 / 360.0));
+    int right_trans = round(deg * (92.5 / 360.0));
+    int disp_l, disp_r;
+    
+    //    printf("Turning %f deg\n", deg);
+    
+    reset_system_time();
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    motor(MOTOR_LEFT, -100);
+    motor(MOTOR_RIGHT, 100);
+    
+    while(((right_trans - SHAFT_RIGHT_COUNT) + (left_trans - SHAFT_LEFT_COUNT))/2 > 0 && mseconds() < 5000L)
+		; 
+    ao();
+}
+
+/** 
+ * @brief Attempt to turn a given number of degrees clockwise
+ * @param deg Number of degrees to turn (must be nonnegative)
+ *
+ * This function ought to turn exactly deg degrees clockwise, but
+ * it hasn't been measured too recently.  Exactly how accurate it is is not
+ * currently known.
+ */
+void cw_degrees(float deg) {
+    int left_trans = round(deg * (92.5 / 360.0));
+    int right_trans = round(deg * (92.5 / 360.0));
+    int disp_l, disp_r;
+    int diff_l, diff_r;
+    
+    //    printf("Turning %f deg\n", deg);
+    
+    reset_system_time();
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    motor(MOTOR_RIGHT, -100);
+    motor(MOTOR_LEFT, 100);
+    
+    while(((right_trans - SHAFT_RIGHT_COUNT) + (left_trans - SHAFT_LEFT_COUNT))/2 > 0 && mseconds() < 5000L)
+		; 
+    ao();
+}
+
+
+/**
+ * @brief Rotate clockwise to find a metal strip
+ * @deprecated Replace by dancing and shaft encoder/GPS turns
+ */
+void turn_cw_to_shiny(void) {
+    while(analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) {
+        cw_degrees(5.0);
+    }
+}
+
+
+/**
+ * @brief Turn left, right, left, ..., until we find a metal strip (or give up)
+ *
+ * Starts out by rotating the motors one shaft encoder transition clockwise, then 3
+ * counts counterclockwise, 5 clockwise, etc.  Stops when the back optos find a metal
+ * strip.
+ */
+void dance_to_strip() {
+    int dist = 1;
+    int dir = 1;
+    while(analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD && dist < 19) {
+        step_treads(dist * dir,-dist * dir);
+        dist+=2;
+        dir *= -1;
+    }
+}
+

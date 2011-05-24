@@ -1,0 +1,146 @@
+/**
+ * @file step.ic
+ * @brief Code to make the robot drive based on shaft encoders.
+ * @author Andrew Krieger and Joel Friedly
+ * @date 5/23/2011
+ */
+
+#use "defines.ic"
+#use "drive.ic"
+#use "servo/exp_servo_lib.ic"
+#use "servo/exp_servo_calibrate.ic"
+#use "CdS.ic"
+#use "line.ic"
+#use "drive-straight.ic"
+#use "turn-slow.ic"
+#use "turn.ic"
+#use "step.ic"
+#use "gps.ic"
+#use "line.ic"
+
+
+/**
+ * @brief Control motors to compensate for encoders
+ * @param disparity The maximum difference in shaft encoder counts before stopping the advanced motor
+ *
+ * Runs the left and right motors at various speeds in order to go (approximately) straight
+ * back, according to the shaft encoders.  Note that this leaves the motors running.
+ */
+void step_straight_back(int disparity) {
+    int low_power;
+    
+    if(abs(SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT) > disparity)
+      low_power = 0;
+    else
+      low_power = 50;
+    
+    if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
+        motor(MOTOR_LEFT,  -low_power);
+        motor(MOTOR_RIGHT, -100);
+        
+    } else if(SHAFT_LEFT_COUNT < SHAFT_RIGHT_COUNT) {
+        motor(MOTOR_LEFT, -100);
+        motor(MOTOR_RIGHT, -low_power);
+    } else {
+        motor(MOTOR_LEFT,  -100);
+        motor(MOTOR_RIGHT, -100);
+    }
+}
+
+
+/**
+ * @brief Control motors to compensate for encoders
+ * @param disparity The maximum difference in shaft encoder counts before stopping the advanced motor
+ *
+ * Runs the left and right motors at various speeds in order to go
+ * straight, according to the shft encoders.  Note that this leaves the motors running.
+ */
+void step_straight_forward(int disparity) {
+    int low_power;
+    
+    if(abs(SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT) > disparity)
+      low_power = 0;
+    else
+      low_power = 50;
+    
+    if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
+        motor(MOTOR_LEFT,  low_power);
+        motor(MOTOR_RIGHT, 100);
+    } else if(SHAFT_LEFT_COUNT < SHAFT_RIGHT_COUNT) {
+        motor(MOTOR_LEFT, 100);
+        motor(MOTOR_RIGHT, low_power);
+    } else {
+        motor(MOTOR_LEFT,  100);
+        motor(MOTOR_RIGHT, 100);
+    }
+}
+
+
+// Precondition: Front sensors straddling boundary
+// Precondition: Back right sensor on line
+
+// This still needs work.  Maybe just try using 1 optosensor code for Monday?
+
+void step_treads(int left, int right) {
+    int left_dir = 80, right_dir = 80;
+    
+    if(left < 0)
+      left_dir = -80;
+    if(right < 0)
+      right_dir = -80;
+    
+    left = abs(left);
+    right = abs(right);
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    reset_system_time();
+    while((SHAFT_LEFT_COUNT < left || SHAFT_RIGHT_COUNT < right) && mseconds() < 3000L) {
+        if(SHAFT_LEFT_COUNT < left)
+          motor(MOTOR_LEFT, left_dir);
+        else
+          motor(MOTOR_LEFT, 0);
+        
+        if(SHAFT_RIGHT_COUNT < right)
+          motor(MOTOR_RIGHT, right_dir);
+        else
+          motor(MOTOR_RIGHT, 0);
+    }
+    
+    ao();
+    //be nice to the motors
+    sleep(0.1);
+}
+
+
+void step_treads2(int left, int right, long timeout) {
+    int left_dir = 100, right_dir = 100;
+    
+    if(left < 0)
+      left_dir = -100;
+    if(right < 0)
+      right_dir = -100;
+    
+    left = abs(left);
+    right = abs(right);
+    
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    reset_system_time();
+    
+    while((SHAFT_LEFT_COUNT < left || SHAFT_RIGHT_COUNT < right) && mseconds() < timeout) {
+        if(SHAFT_LEFT_COUNT < left && SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT < 2)
+          motor(MOTOR_LEFT, left_dir);
+        else
+          motor(MOTOR_LEFT, 0);
+        
+        if(SHAFT_RIGHT_COUNT < right && SHAFT_RIGHT_COUNT - SHAFT_LEFT_COUNT < 2)
+          motor(MOTOR_RIGHT, right_dir);
+        else
+          motor(MOTOR_RIGHT, 0);
+    }
+    
+    ao();
+    //be nice to the motors
+    sleep(0.1);
+}
+
