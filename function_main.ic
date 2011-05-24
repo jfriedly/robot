@@ -3,9 +3,7 @@
  * @brief  Main loop
  * @author Andrew Krieger
  * @date   4/26/2011
- *
  */
-
 
 #use "defines.ic"
 #use "drive.ic"
@@ -14,51 +12,11 @@
 #use "CdS.ic"
 #use "line.ic"
 #use "drive-straight.ic"
-#use "corn.ic"
-
-#define RED_BUTTON_TRIES 4
-
-void step_treads2(int left, int right, long timeout) {
-    int left_dir = 100, right_dir = 100;
-    
-    if(left < 0)
-      left_dir = -100;
-    if(right < 0)
-      right_dir = -100;
-    
-    left = abs(left);
-    right = abs(right);
-    
-    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-    reset_system_time();
-    
-    while((SHAFT_LEFT_COUNT < left || SHAFT_RIGHT_COUNT < right) && mseconds() < timeout) {
-        if(SHAFT_LEFT_COUNT < left && SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT < 2)
-          motor(MOTOR_LEFT, left_dir);
-        else
-          motor(MOTOR_LEFT, 0);
-        
-        if(SHAFT_RIGHT_COUNT < right && SHAFT_RIGHT_COUNT - SHAFT_LEFT_COUNT < 2)
-          motor(MOTOR_RIGHT, right_dir);
-        else
-          motor(MOTOR_RIGHT, 0);
-    }
-    
-    ao();
-    //be nice to the motors
-    sleep(0.1);
-}
-
-void bkgd_opto_check(void) {
-    long last = 0L;
-    
-    for(;;) {
-        if(stop_button() && mseconds() - last > 50L) {
-            printf("FL%d FR%d       BL%d BR%d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT), analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
-            last = mseconds();
-        }
-    }
-}
+#use "turn-slow.ic"
+#use "turn.ic"
+#use "step.ic"
+#use "gps.ic"
+#use "line.ic"
 
 
 /**
@@ -79,7 +37,6 @@ void main() {
     exp_servo_deg(SERVO_HAY, 0);
     
     init_shaft_encoders();
-    start_process(bkgd_opto_check());
     
     sleep(1.0);
     while(start_button())
