@@ -11,7 +11,7 @@
 #use "servo/exp_servo_calibrate.ic"
 #use "CdS.ic"
 #use "line.ic"
-#use "drive-straight.ic"
+
 #use "turn-slow.ic"
 #use "turn.ic"
 #use "step.ic"
@@ -65,13 +65,13 @@ void step_straight_forward(int disparity) {
     
     if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
         motor(MOTOR_LEFT,  low_power);
-        motor(MOTOR_RIGHT, 100);
+        motor(MOTOR_RIGHT, 80);
     } else if(SHAFT_LEFT_COUNT < SHAFT_RIGHT_COUNT) {
-        motor(MOTOR_LEFT, 100);
+        motor(MOTOR_LEFT, 80);
         motor(MOTOR_RIGHT, low_power);
     } else {
-        motor(MOTOR_LEFT,  100);
-        motor(MOTOR_RIGHT, 100);
+        motor(MOTOR_LEFT,  80);
+        motor(MOTOR_RIGHT, 80);
     }
 }
 

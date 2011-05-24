@@ -3,7 +3,9 @@
  * @brief  Main loop
  * @author Andrew Krieger
  * @date   4/26/2011
+ *
  */
+
 
 #use "defines.ic"
 #use "drive.ic"
@@ -11,13 +13,9 @@
 #use "servo/exp_servo_calibrate.ic"
 #use "CdS.ic"
 #use "line.ic"
-#use "drive-straight.ic"
-#use "turn-slow.ic"
-#use "turn.ic"
-#use "step.ic"
-#use "gps.ic"
-#use "line.ic"
+#use "corn.ic"
 
+#define RED_BUTTON_TRIES 4
 
 /**
  * @brief main entry point
@@ -82,22 +80,6 @@ void main() {
             gps_good_data();
         }
         
-        /*
-        drive_straight(15);
-        turn(62.5);
-        
-        gps_turn(100, 5);
-        
-        drive_forward_to_shiny(2000L);
-        
-        drive_back_to_shiny(1, 500L);
-        
-        drive_straight(-7);
-        turn(-90.0);
-        
-        dance_to_strip();
-       */ 
-        
         curve_to_wagon();
         step_treads(-10,-10);
         turn(-40.0);
@@ -124,16 +106,5 @@ void main() {
     printf("Are you ready tostart WINNING?\n");
     wait_for_start();
     start_to_corn();
-    printf("Blue? %d\n", test_corn());
-    msleep(1500L);
-    
-    drive_straight(-10);
-    turn(-45.0);
-    drive_forward_to_shiny(0, 2000L);
-    printf("Blue? %d\n", test_corn());
-    
-    drive_straight(-10);
-    turn(-45.0);
-    drive_forward_to_shiny(0, 2000L);
-    printf("Blue? %d\n", test_corn());
+    do_corny_stuff();
 }

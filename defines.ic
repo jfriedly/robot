@@ -21,7 +21,7 @@
 #define SERVO_CORN 0
 #define SERVO_HAY 3
 
-#define OPTO_THRESHOLD 50
+#define OPTO_THRESHOLD 90
 #define CDS_THRESHOLD 20
 
 /// Wait for this many loops to confirm we're over something shiny (ie, aluminum strips)
@@ -34,5 +34,9 @@
 
 #define RED_BUTTON_TRIES 4
 
+
+#define CORN_DOWN 160
+#define CORN_LIFT 100
+#define CORN_UP 60
 
 #use "encoders.ic"

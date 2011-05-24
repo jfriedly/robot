@@ -1,7 +1,7 @@
 #use "drive.ic"
 #use "line.ic"
 #use "defines.ic"
-#use "drive-straight.ic"
+
 
 
 /**
@@ -14,7 +14,7 @@ void start_to_corn(void) {
     drive_straight(50);
     turn(-50.0);
     gps_turn(45, 4);
-
+    
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
     reset_system_time();
@@ -26,8 +26,8 @@ void start_to_corn(void) {
     ao();
     msleep(100L);
     turn_cw_to_shiny();
-
-//    step_treads(5, 0);
+    
+    //    step_treads(5, 0);
 }
 
 
@@ -60,7 +60,7 @@ void corn_to_start(void) {
 
 int test_corn(void) {
     int cds;
-
+    
     follow_strip_forward(1, 3000L);
     
     press_start();
@@ -68,4 +68,42 @@ int test_corn(void) {
     drive_straight(-2);
     
     return analog(CDS_FRONT) >= 15;
+}
+
+void pick_corn(void) {
+    int i;
+    
+    drive_straight(-10);
+    
+    exp_servo_deg(SERVO_CORN, CORN_DOWN);
+    msleep(250L);
+    
+    drive_straight(15);
+    exp_servo_deg(SERVO_CORN, CORN_LIFT);
+    msleep(250L);
+    exp_servo_deg(SERVO_CORN, CORN_UP);
+    for(i=0;i<5;i++) {
+        drive_straight(-20);
+        msleep(250L);
+    }
+}
+
+void do_corny_stuff(void) {
+    if(test_corn()) {
+        pick_corn();
+        return;
+    }
+    
+    drive_straight(-33);
+    turn(-45.0);
+    drive_forward_to_shiny(0, 2000L);
+    if(test_corn()) {
+        pick_corn();
+        return;
+    }
+    
+    drive_straight(-33);
+    turn(-45.0);
+    drive_forward_to_shiny(0, 2000L);
+    
 }

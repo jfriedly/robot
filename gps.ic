@@ -10,12 +10,13 @@
 #use "servo/exp_servo_calibrate.ic"
 #use "CdS.ic"
 #use "line.ic"
-#use "drive-straight.ic"
 #use "turn-slow.ic"
 #use "turn.ic"
 #use "step.ic"
 #use "gps.ic"
 #use "line.ic"
+#use "gps_module.ic"
+#use "gps_module.icb"
 
 
 /**
@@ -49,9 +50,9 @@ void gps_good_data(void) {
  * It then waits for .75s or more if needed to get new gps data and calls turn() to turn a calculated number of shaft encoder counts. 
  */
 void gps_turn(int ang, int tol) {
-	// offs is the offset used 
-	int offs = 0;
-	// g and a are the corrected gps heading and angle to turn to, respectively
+    // offs is the offset used 
+    int offs = 0;
+    // g and a are the corrected gps heading and angle to turn to, respectively
     int g, a;
     
     if(ang < 45 || ang > 135)

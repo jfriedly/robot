@@ -12,7 +12,6 @@
 #use "servo/exp_servo_calibrate.ic"
 #use "CdS.ic"
 #use "line.ic"
-#use "drive-straight.ic"
 #use "turn-slow.ic"
 #use "turn.ic"
 #use "step.ic"
@@ -97,7 +96,7 @@ void align_back_cw(void) {
             ao();
             return;
         }
-
+        
         if((mask & (FRONT_LEFT_MASK | FRONT_RIGHT_MASK)) == FRONT_LEFT_MASK) {
             motor(MOTOR_LEFT, 100);
             motor(MOTOR_RIGHT, 100);
@@ -120,7 +119,7 @@ void follow_strip_forward(int left, long timeout) {
         on_motor = MOTOR_RIGHT;
         off_motor = MOTOR_LEFT;
     }
-
+    
     reset_system_time();
     
     for(i=0; i<3; i++) {
@@ -128,17 +127,21 @@ void follow_strip_forward(int left, long timeout) {
             while(analog(end_port) < OPTO_THRESHOLD && mseconds() < timeout) {
                 if(analog(edge_port) < OPTO_THRESHOLD) {
                     motor(on_motor, 100);
-                    motor(off_motor, 0);
+                    motor(off_motor, -30);
                 } else {
-                    motor(on_motor, 0);
+                    motor(on_motor, -30);
                     motor(off_motor, 100);
                 }
             }
             
+            printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port));
+            
             ao();
             msleep(100L);
-            if(analog(end_port) >= OPTO_THRESHOLD)
-              break;
+            if(analog(end_port) >= OPTO_THRESHOLD || mseconds() >= timeout) {
+                printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port));    
+                break;
+            }
         }
     }
 }
