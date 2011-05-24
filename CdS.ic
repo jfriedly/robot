@@ -15,15 +15,17 @@
 /**
  * @brief Block until the CdS detects light
  *
+ * @param port This should be either CDS_SIDE or CDS_FRONT, for the side or front opto respectively.
+ *
  * If the CdS is near the starting light and has the sheild, then this won't
  * start until the light comes on.  If the shield is missing, then it will
  * probably start just from ambient light.
  */
-void wait_for_start(void) {
+void wait_for_start(int port) {
     for(;;) {
-        if(analog(CDS_SIDE) < CDS_THRESHOLD) {
+        if(analog(port) < CDS_THRESHOLD) {
             msleep(250L);
-            if(analog(CDS_SIDE) < CDS_THRESHOLD)     
+            if(analog(port) < CDS_THRESHOLD)     
               return;
         }
         if(start_button()) {

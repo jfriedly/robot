@@ -263,8 +263,8 @@ void angle_right_to_shiny(int max_dist) {
 
 
 void drive_back_to_wall(void) {
-    while(!digital(SWITCH_BACK_LEFT) || !digital(SWITCH_BACK_RIGHT)) {
-        if(!digital(SWITCH_BACK_LEFT))
+    while(!digital(SWITCH_CORN) || !digital(SWITCH_BACK_RIGHT)) {
+        if(!digital(SWITCH_CORN))
           motor(MOTOR_LEFT, -100);
         else
           motor(MOTOR_LEFT, 0);
@@ -279,15 +279,26 @@ void drive_back_to_wall(void) {
 
 void pull_wagon(void) {
     step_treads(3, 3);        
-    step_treads(0, 12);
-    step_treads(10, 12);
-    step_treads(0, 12);
-    step_treads(23, 23);
-    step_treads(14, 0);
-    step_treads(12, 10);
-    step_treads(14, 0);
-    step_treads(12, 10);
-    step_treads(14, 0);
+    for(;;) {
+        msleep(1000L);
+        gps_good_data();
+        if(abs(gps_heading - 45) < 10)
+          break;
+        
+        step_treads(0, 12);
+        step_treads(10, 12);
+    }
+    step_treads(30, 30);
+    
+    for(;;) {
+        msleep(1000L);
+        gps_good_data();
+        if(gps_heading < 10 || digital(SWITCH_WALL_LEFT))
+          break;
+    
+        step_treads(14, 0);
+        step_treads(12, 10);
+    }
 }
 
 void curve_to_wagon() {
@@ -298,7 +309,12 @@ void curve_to_wagon() {
     
     motor(MOTOR_RIGHT, 75);
     motor(MOTOR_LEFT, 100);
-    while(mseconds() < 1750L);
+    while(mseconds() < 1750L)
+      ;
+    
+    motor(MOTOR_RIGHT, 0);
+    while(mseconds() < 2250L)
+      ;
     ao();
     sleep(0.05);  
 }

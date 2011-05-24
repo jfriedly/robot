@@ -41,9 +41,9 @@ void main() {
       ;
     
     #if 0
-      for(;0;) {     
+      for(;;) {     
         printf("Are you ready tostart WINNING?\n");
-        wait_for_start();
+        wait_for_start(CDS_FRONT);
         
         drive_up_hill();
         
@@ -58,6 +58,11 @@ void main() {
         drive_back_to_shiny(0, 1500L);
         
         follow_strip_back(1);
+        press_start();
+        follow_strip_back(1);
+        press_start();
+        follow_strip_back(1);
+        press_start();
         
         drive_straight(-3);
         
@@ -66,7 +71,7 @@ void main() {
         exp_servo_deg(SERVO_HAY, 90);
         msleep(250L);
         exp_servo_deg(SERVO_HAY, 0);
-        msleep(250L);
+        msleep(250L); 
         
         gps_good_data();
         for(i=0;!gps_button && i < RED_BUTTON_TRIES;++i) {
@@ -82,9 +87,10 @@ void main() {
         
         curve_to_wagon();
         step_treads(-10,-10);
-        turn(-40.0);
+        turn(-60.0);
+        gps_turn(145, 4);
         drive_back_to_shiny(0, 2000L);
-        follow_strip_back(0);
+        follow_strip_backward(0, 5000L);
         
         motor(MOTOR_LEFT, -80);
         motor(MOTOR_RIGHT, -80);
@@ -101,10 +107,14 @@ void main() {
         
         ao();
     }
-    #endif
+    #else
     
     printf("Are you ready tostart WINNING?\n");
-    wait_for_start();
+    wait_for_start(CDS_SIDE);
     start_to_corn();
-    do_corny_stuff();
+    test_corn();
+    pick_corn();
+    left_corn_cleanup();
+    
+    #endif
 }

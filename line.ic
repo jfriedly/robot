@@ -127,24 +127,69 @@ void follow_strip_forward(int left, long timeout) {
             while(analog(end_port) < OPTO_THRESHOLD && mseconds() < timeout) {
                 if(analog(edge_port) < OPTO_THRESHOLD) {
                     motor(on_motor, 100);
-                    motor(off_motor, -30);
+                    motor(off_motor, 0);
                 } else {
-                    motor(on_motor, -30);
+                    motor(on_motor, 0);
                     motor(off_motor, 100);
                 }
             }
             
             printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port));
             
-            ao();
             msleep(100L);
+            step_treads(0, 1);
             if(analog(end_port) >= OPTO_THRESHOLD || mseconds() >= timeout) {
-                printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port));    
+                printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port)); 
+                msleep(250L);
                 break;
             }
         }
     }
 }
+
+
+void follow_strip_backward(int left, long timeout) {
+    int i;
+    int edge_port = OPTO_FRONT_RIGHT, end_port = OPTO_FRONT_LEFT;
+    int on_motor = MOTOR_LEFT, off_motor = MOTOR_RIGHT;
+    
+    if(left) {
+        edge_port = OPTO_FRONT_LEFT;
+        end_port = OPTO_FRONT_RIGHT;
+        on_motor = MOTOR_RIGHT;
+        off_motor = MOTOR_LEFT;
+    }
+    
+    reset_system_time();
+    
+    for(i=0; i<3; i++) {
+        for(;;) {
+            while(analog(end_port) < OPTO_THRESHOLD && mseconds() < timeout) {
+                if(analog(edge_port) < OPTO_THRESHOLD) {
+                    motor(on_motor, -100);
+                    motor(off_motor, 0);
+                } else {
+                    motor(on_motor, 0);
+                    motor(off_motor, -100);
+                }
+            }
+            
+            ao();
+            printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port));
+            
+            msleep(100L);
+            motor(off_motor, -100);
+            motor(on_motor, 0);
+            msleep(100L);
+            ao();
+            if(analog(end_port) >= OPTO_THRESHOLD || mseconds() >= timeout) {
+                printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port)); 
+                break;
+            }
+        }
+    }
+}
+
 
 void follow_strip_back(int left) 
 {    
@@ -175,8 +220,8 @@ void follow_strip_back(int left)
                 }
             }
             
-            ao();
             msleep(5L);
+            ao();
             if(analog(OPTO_BACK_RIGHT) >= OPTO_THRESHOLD) {
                 printf("%d %d\n", analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
                 break;

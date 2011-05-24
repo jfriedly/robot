@@ -102,11 +102,22 @@ void cw_degrees(float deg) {
  * @deprecated Replace by dancing and shaft encoder/GPS turns
  */
 void turn_cw_to_shiny(void) {
+    while(analog(OPTO_FRONT_LEFT) >= OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) >= OPTO_THRESHOLD) {
+        printf("Turn CW to Shiny%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
+        //motor(MOTOR_LEFT, 100);
+        //motor(MOTOR_RIGHT, -100);
+        step_treads(1,-1);
+        msleep(75L);
+    }
+    
     while(analog(OPTO_FRONT_LEFT) >= OPTO_THRESHOLD || analog(OPTO_FRONT_RIGHT) >= OPTO_THRESHOLD) {
         printf("Turn CW to Shiny%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
+        //motor(MOTOR_LEFT, 100);
+        //motor(MOTOR_RIGHT, -100);
         step_treads(1,-1);
-        msleep(50L);
+        msleep(75L);
     }
+    
     printf("Turn CW to Shiny%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
 }
 
