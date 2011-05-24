@@ -27,4 +27,12 @@
 /// Wait for this many loops to confirm we're over something shiny (ie, aluminum strips)
 #define SHINY_TIME 1
 
+///Returned by @ref press_button if the start button is pressed
+#define BUTTON_START 0
+///Returned by @ref press_button if the stop button is pressed
+#define BUTTON_STOP 1
+
+#define RED_BUTTON_TRIES 4
+
+
 #use "encoders.ic"

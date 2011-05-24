@@ -1,8 +1,30 @@
-#use "util.ic"
-#use "gps_module.ic"
-#use "gps_module.icb"
-#use "drive.ic"
+/**
+ * @file gps.ic
+ * @brief Contains the code to do gps-related tasks
+ * @author Andrew Krieger 
+ */
 
+#use "defines.ic"
+#use "drive.ic"
+#use "servo/exp_servo_lib.ic"
+#use "servo/exp_servo_calibrate.ic"
+#use "CdS.ic"
+#use "line.ic"
+#use "drive-straight.ic"
+#use "turn-slow.ic"
+#use "turn.ic"
+#use "step.ic"
+#use "gps.ic"
+#use "line.ic"
+
+
+/**
+ * @brief Blocks until it recieves a new packet of gps data.
+ *
+ * Waits for a minimum of .25s before exiting.  
+ * It runs on a loop repeating with every new gps packet and it won't break out until it gets a valid packet.  
+ * (Where valid is defined as having a y coordinate less than or equal to 256.) 
+ */
 void gps_good_data(void) {
     ao();
     msleep(250L);
@@ -16,8 +38,20 @@ void gps_good_data(void) {
     }
 }
 
+
+/**
+ * @brief Turns to a given angle.
+ * @param ang Angle to turn to.
+ * @param tol Tolerance to accept when turning.
+ *
+ * NOTE:  The gps_heading variable used here is the heading of the gps beacon, not the robot's heading.
+ * The offset gets set to 90 when the robot is trying to turn to an angle close to 0 or 180 to avoid errors from dancing around the 180-0 boundary.
+ * It then waits for .75s or more if needed to get new gps data and calls turn() to turn a calculated number of shaft encoder counts. 
+ */
 void gps_turn(int ang, int tol) {
-    int offs = 0;
+	// offs is the offset used 
+	int offs = 0;
+	// g and a are the corrected gps heading and angle to turn to, respectively
     int g, a;
     
     if(ang < 45 || ang > 135)

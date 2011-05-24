@@ -1,18 +1,22 @@
 /**
  * @file drive.ic
- * @brief Driving code.  Way too much stuff is currently in here
- * @author Andrew Krieger
+ * @brief Driving code.  This includes the curving code, code to pull the wagon back to the start area, and other general purpose driving code.
+ * @author Andrew Krieger and Joel Friedly
  * @date 4/25/2011
  */
 
 #use "defines.ic"
-#use "util.ic"
-#use "line.ic"
-#use "gps.ic"
+#use "drive.ic"
 #use "servo/exp_servo_lib.ic"
-
-/// Wait for this many loops to confirm we're over something shiny (ie, aluminum strips)
-#define SHINY_TIME 1
+#use "servo/exp_servo_calibrate.ic"
+#use "CdS.ic"
+#use "line.ic"
+#use "drive-straight.ic"
+#use "turn-slow.ic"
+#use "turn.ic"
+#use "step.ic"
+#use "gps.ic"
+#use "line.ic"
 
 
 /**
@@ -109,61 +113,6 @@ void drive_down_hill() {
 
 
 /**
- * @brief Control motors to compensate for encoders
- * @param disparity The maximum difference in shaft encoder counts before stopping the advanced motor
- *
- * Runs the left and right motors at various speeds in order to go (approximately) straight
- * back, according to the shaft encoders.  Note that this leaves the motors running.
- */
-void step_straight_back(int disparity) {
-    int low_power;
-    
-    if(abs(SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT) > disparity)
-      low_power = 0;
-    else
-      low_power = 50;
-    
-    if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
-        motor(MOTOR_LEFT,  -low_power);
-        motor(MOTOR_RIGHT, -100);
-        
-    } else if(SHAFT_LEFT_COUNT < SHAFT_RIGHT_COUNT) {
-        motor(MOTOR_LEFT, -100);
-        motor(MOTOR_RIGHT, -low_power);
-    } else {
-        motor(MOTOR_LEFT,  -100);
-        motor(MOTOR_RIGHT, -100);
-    }
-}
-
-/**
- * @brief Control motors to compensate for encoders
- * @param disparity The maximum difference in shaft encoder counts before stopping the advanced motor
- *
- * Runs the left and right motors at various speeds in order to go
- * straight, according to the shft encoders.  Note that this leaves the motors running.
- */
-void step_straight_forward(int disparity) {
-    int low_power;
-    
-    if(abs(SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT) > disparity)
-      low_power = 0;
-    else
-      low_power = 50;
-    
-    if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
-        motor(MOTOR_LEFT,  low_power);
-        motor(MOTOR_RIGHT, 100);
-    } else if(SHAFT_LEFT_COUNT < SHAFT_RIGHT_COUNT) {
-        motor(MOTOR_LEFT, 100);
-        motor(MOTOR_RIGHT, low_power);
-    } else {
-        motor(MOTOR_LEFT,  100);
-        motor(MOTOR_RIGHT, 100);
-    }
-}
-
-/**
  * @brief Drive backwards to reach a metal strip.
  *
  * @param go_to_front Set to nonzero to continue driving backwards until the front optos are on a strip
@@ -205,10 +154,7 @@ void drive_back_to_shiny(int go_to_front, long timeout) {
           step_straight_back(3);
         
         ao();
-        //        exp_servo_deg(0, 5);
-        //        exp_servo_deg(0, 5);
-        //        msleep(250L);
-        
+
         printf("Finding front optos\n");
         SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
         shiny_ctr = 0;
@@ -283,6 +229,7 @@ void drive_forward_to_shiny(long timeout) {
     ao();
 }
 
+
 /**
  * @brief Angle right until a metallic strip is found
  * @deprecated This doesn't use shaft encoders or timeouts.  I also don't think it's used anywhere.
@@ -305,243 +252,10 @@ void angle_right_to_shiny(void) {
         } else {
             shiny_ctr = 0;
         }
-        
-        //        if(mseconds() >= 50L) {
-        //            printf("%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
-        //            reset_system_time();
-        //        }
-        
     }
-    
-    ao();
-    
-}
 
-
-
-///**
-// * @brief Align self with metal strip
-// * @deprecated Is this used anywhere?
-// */
-//void drive_strip() {
-//    while(!stop_button()) {
-//        int i;
-//        
-//        for(i=2;i<7;++i) {
-//            printf("%d",i);
-//            print_hex_byte(analog(i));
-//            printf(" ");
-//        }
-//        
-//        printf("\n");
-//        sleep(0.1);
-//    }
-//}
-
-/**
- * @brief Turn by deg, relative to current position
- * @param deg Degrees to turn.  Positive is CCW, negative is CW.
- *
- * This will repeatedly call [c]cw_degrees to turn.
- */
-void turn(float deg) {
-    if(deg > 0.0) {
-        while(deg > 45.0) {
-            ccw_degrees(45.0);
-            deg -= 45.0;
-        }
-        
-        ccw_degrees(deg);
-    } else if(deg < 0.0) {
-        while(deg < -45.0) {
-            cw_degrees(45.0);
-            deg += 45.0;
-        }
-        
-        cw_degrees(-deg);
-    }
-}
-
-/** 
- * @brief Attempt to turn a given number of degrees counterclockwise
- * @param deg Number of degrees to turn (must be nonnegative)
- *
- * This function ought to turn exactly deg degrees counterclockwise, but
- * it hasn't been measured too recently.  Exactly how accurate it is is not
- * currently known.
- */
-void ccw_degrees(float deg) {
-    //int left_trans = round(deg * (70.0 / 360.0));
-    //int right_trans = round(deg * (124.0 / 360.0));
-    int left_trans = round(deg * (92.5 / 360.0));
-    int right_trans = round(deg * (92.5 / 360.0));
-    int disp_l, disp_r;
-    
-    //    printf("Turning %f deg\n", deg);
-    
-    reset_system_time();
-    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-    
-    motor(MOTOR_LEFT, -100);
-    motor(MOTOR_RIGHT, 100);
-    
-    while(((right_trans - SHAFT_RIGHT_COUNT) + (left_trans - SHAFT_LEFT_COUNT))/2 > 0 && mseconds() < 5000L)
-      {
-        /*
-        if(SHAFT_LEFT_COUNT != disp_l || SHAFT_RIGHT_COUNT != disp_r) 
-          {
-            disp_l = SHAFT_LEFT_COUNT;
-            disp_r = SHAFT_RIGHT_COUNT;
-            printf("L:%d R:%d\n", disp_l, disp_r);
-        }
-        */
-    }
-    
     ao();
 }
-/** 
- * @brief Attempt to turn a given number of degrees clockwise
- * @param deg Number of degrees to turn (must be nonnegative)
- *
- * This function ought to turn exactly deg degrees clockwise, but
- * it hasn't been measured too recently.  Exactly how accurate it is is not
- * currently known.
- */
-void cw_degrees(float deg) {
-    //int left_trans = round(deg * (106.0 / 360.0));
-    //int right_trans = round(deg * (95.0 / 360.0));
-    int left_trans = round(deg * (92.5 / 360.0));
-    int right_trans = round(deg * (92.5 / 360.0));
-    int disp_l, disp_r;
-    int diff_l, diff_r;
-    
-    //    printf("Turning %f deg\n", deg);
-    
-    reset_system_time();
-    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-    
-    while(mseconds() < 5000L)
-      {
-        diff_l = SHAFT_LEFT_COUNT - left_trans;
-        diff_r = SHAFT_RIGHT_COUNT - right_trans;
-        
-        if(diff_l + diff_r > 1)
-          break;
-        
-        //        if(diff_l > diff_r + 1)
-        //          {
-        //            motor(MOTOR_LEFT, 70);
-        //            motor(MOTOR_RIGHT, -100);
-        //        }
-        //        else if(diff_l >= diff_r - 1)
-        //          {
-        motor(MOTOR_LEFT, 100);
-        motor(MOTOR_RIGHT, -100);
-        //        }
-        //        else
-        //        {
-        //            motor(MOTOR_LEFT, 100);
-        //            motor(MOTOR_RIGHT, -70);
-        //        }
-        
-        /*        if(SHAFT_LEFT_COUNT != disp_l || SHAFT_RIGHT_COUNT != disp_r) 
-          {
-            disp_l = SHAFT_LEFT_COUNT;
-            disp_r = SHAFT_RIGHT_COUNT;
-            printf("L:%d R:%d\n", disp_l, disp_r);
-        }
-*/
-    }
-    
-    ao();
-}
-
-/**
- * @brief Rotate clockwise to find a metal strip
- * @deprecated Replace by dancing and shaft encoder/GPS turns
- */
-void turn_cw_to_shiny(void) {
-    while(analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) {
-        cw_degrees(5.0);
-    }
-}
-/*
-void align_toward_start(void) {
-    turn(-45.0);
-    //Align facing right.  GPS should go to 90
-    for(;;) {
-        gps_good_data();
-        
-        printf("Heading: %d\n", gps_heading);
-        if(abs(gps_heading - 90) < 5)
-          break;
-        
-        if(gps_heading < 90)
-          ccw_degrees(5.0);
-        else
-          cw_degrees(5.0);
-    }
-    
-    
-    printf("Facing east\n");
-    press_start();
-    //Drive to GPS x=-36, approximately
-    for(;;) {
-        gps_good_data();
-        
-        printf("X:0 %d\n", gps_x);
-        if(gps_x <= -36 && gps_x >= -40)
-          break;
-        
-        if(gps_x > -38)
-          step_treads(-2, -2);
-        else
-          step_treads(2, 2);
-    }
-    
-    printf("To X\n");
-    press_start();
-    //Turn facing southeast - GPS to 45
-    for(;;) {
-        gps_good_data();
-        
-        printf("Hdg: %d\n", gps_heading);
-        
-        if(abs(gps_heading - 45) < 5)
-          break;
-        
-        if(gps_heading > 45 && gps_heading < 135)
-          cw_degrees(5.0);
-        else
-          ccw_degrees(5.0);
-    }
-    
-    
-}
-
-void get_to_start(void) {
-    align_toward_start();
-}
-
-void turn_to_135(void) {
-    turn(-20.0);
-    
-    for(;;) {
-        gps_good_data();
-        
-        printf("Hdg: %d\n", gps_heading);
-        
-        if(abs(gps_heading - 45) < 5)
-          break;
-        
-        if(gps_heading > 45 && gps_heading < 135)
-          cw_degrees(5.0);
-        else
-          ccw_degrees(5.0);
-    }
-}
-
-
 
 
 void drive_back_to_wall(void) {
@@ -555,193 +269,6 @@ void drive_back_to_wall(void) {
           motor(MOTOR_RIGHT, -100);
         else
           motor(MOTOR_RIGHT, 0);
-        
-    }
-}
-
-
-
-int get_target_x(void) {
-    // The line that gets us between the bumps is the solution of:
-    //    y = f(x) = 60 - x
-    // Solving for x as a function of y gives:
-    //    x = g(y) = 60 - y
-    // This line was caluclated from the two points (-30, 90) and (-45, 105)
-    
-    return 60 - gps_y; // f(gps_x)
-}
-
-void align_corn_to_start(void) {
-    int target_x;
-    //Use the GPS to face approximately east?
-    
-    printf("Back to wall\n");
-    //Use the wall to square up
-    drive_back_to_wall();
-    
-    //Drive to proper (x,y) coordinate
-    gps_good_data();
-    target_x = get_target_x();
-    while(abs(gps_x - target_x) > 0) {
-        printf("GPS:(%d,%d) To:%d\n", gps_x, gps_y, target_x);
-        if(gps_x > target_x)
-          step_treads(-1, -1);
-        else
-          step_treads(1, 1);
-        
-        gps_good_data();
-        target_x = get_target_x();
-    }
-    
-    //Face toward bumps
-    turn_to_135();
-}
-
-void ctrclockwise_18(void) {
-    int diff_l, diff_r;
-    
-    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-    
-    motor(MOTOR_LEFT, -100);
-    motor(MOTOR_RIGHT, 100);
-    
-    for(;;)
-      {
-        diff_l = SHAFT_LEFT_COUNT - 3;
-        diff_r = SHAFT_RIGHT_COUNT - 3;
-        
-        if(diff_l + diff_r > 0)
-          break;
-        
-    }
-    
-    ao();
-    msleep(100L);
-}  
-
-void clockwise_18(void) {
-    int diff_l, diff_r;
-    
-    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-    
-    motor(MOTOR_LEFT, 100);
-    motor(MOTOR_RIGHT, -100);
-    
-    for(;;)
-      {
-        diff_l = SHAFT_LEFT_COUNT - 3;
-        diff_r = SHAFT_RIGHT_COUNT - 3;
-        
-        if(diff_l + diff_r > 0)
-          break;
-        
-    }
-    
-    ao();
-    msleep(100L);
-}
-*/
-
-
-/**
- * @brief Turn by deg, relative to current position
- * @param deg Degrees to turn.  Positive is CCW, negative is CW.
- *
- * This will repeatedly call [c]cw_degrees to turn.  This turns with less motor power
- * than the regular @ref turn function.
- */
-void turn_slow(float deg) {
-    if(deg > 0.0) {
-        while(deg > 45.0) {
-            ccw_degrees_slow(45.0);
-            deg -= 45.0;
-        }
-        
-        ccw_degrees_slow(deg);
-    } else if(deg < 0.0) {
-        while(deg < -45.0) {
-            cw_degrees_slow(45.0);
-            deg += 45.0;
-        }
-        
-        cw_degrees_slow(-deg);
-    }
-}
-
-/**
- * @brief Helper function to slowly turn counterclockwise
- * @param deg Number of degrees to turn (must be nonnegative)
- */
-void ccw_degrees_slow(float deg) {
-    int left_trans = round(deg * (92.5 / 360.0));
-    int right_trans = round(deg * (92.5 / 360.0));
-    int diff_l, diff_r;
-    
-    //    printf("Turning %f deg\n", deg);
-    
-    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-    reset_system_time();
-    
-    while(mseconds() < 2000L)
-      {
-        diff_l = SHAFT_LEFT_COUNT - left_trans;
-        diff_r = SHAFT_RIGHT_COUNT - right_trans;
-        
-        if(diff_l + diff_r > 1)
-          break;
-        
-        motor(MOTOR_LEFT, -70);
-        motor(MOTOR_RIGHT, 70);
-        
-    }
-    
-    ao();
-}
-
-/**
- * @brief Helper function to slowly turn clockwise.
- * @param deg Number of degrees to turn (must be nonnegative) 
- */
-void cw_degrees_slow(float deg) {
-    
-    int left_trans = round(deg * (92.5 / 360.0));
-    int right_trans = round(deg * (92.5 / 360.0));
-    int disp_l, disp_r;
-    int diff_l, diff_r;
-    
-    reset_system_time();
-    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-    
-    while(mseconds() < 2000L)
-      {
-        diff_l = SHAFT_LEFT_COUNT - left_trans;
-        diff_r = SHAFT_RIGHT_COUNT - right_trans;
-        
-        if(diff_l + diff_r > 1)
-          break;
-        
-        motor(MOTOR_LEFT, 70);
-        motor(MOTOR_RIGHT, -70);
-        
-    }
-    
-    ao();
-}
-
-/**
- * @brief Turn left, right, left, ..., until we find a metal strip (or give up)
- *
- * Starts out by rotating the motors one shaft encoder transition clockwise, then 3
- * counts counterclockwise, 5 clockwise, etc.  Stops when the back optos find a metal
- * strip.
- */
-void dance_to_strip() {
-    int dist = 1;
-    int dir = 1;
-    while(analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD && dist < 19) {
-        step_treads(dist * dir,-dist * dir);
-        dist+=2;
-        dir *= -1;
     }
 }
 
@@ -769,19 +296,47 @@ void curve_to_wagon() {
     motor(MOTOR_LEFT, 100);
     while(mseconds() < 1750L);
     ao();
-    sleep(0.05);
-    
-    /*reset_system_time();
-    while(shiny_ctr < SHINY_TIME) {
-        if (analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) {
-            ++shiny_ctr;
-        } else {
-            shiny_ctr = 0;
-        }
-        motor(MOTOR_RIGHT, -100);
-        motor(MOTOR_LEFT, -50);
-    }*/
+    sleep(0.05);  
 }
+
+
+void drive_straight(int trans) {
+    int dir;
+    int low_pwr;
+    int diff;
     
+    if(trans == 0)
+      return;
+    
+    dir = trans / abs(trans);
+    
+    //Set trans = 2*abs(trans), so we can drive until avg(left, right) < trans   <=>    left+right < 2*trans
+    trans = abs(trans);
+    trans += trans;
+    
+    reset_system_time();
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    while(SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < trans && mseconds() < 5000L) {
+        diff = abs(SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT);
+        if(diff > 5)
+          low_pwr = 0;
+        else if(diff > 3)
+          low_pwr = 60;
+        else if(diff > 1)
+          low_pwr = 80;
+        else
+          low_pwr = 100;
         
+        if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
+            motor(MOTOR_LEFT, dir * low_pwr);
+            motor(MOTOR_RIGHT, dir * 100);
+        } else {
+            motor(MOTOR_LEFT, dir * 100);
+            motor(MOTOR_RIGHT, dir * low_pwr);
+        }
+    }
     
+    ao();
+}
+

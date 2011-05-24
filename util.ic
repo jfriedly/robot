@@ -5,14 +5,7 @@
  * @date   4/25/2011
  */
 
-///Returned by @ref press_button if the start button is pressed
-#define BUTTON_START 0
-///Returned by @ref press_button if the stop button is pressed
-#define BUTTON_STOP 1
 
-#define TWO_PI 6.2831853
-#define PI 3.1415927
-#define HALF_PI 1.5707963
 
 /**
  * @brief Print half a byte (4 bits) in hex.
