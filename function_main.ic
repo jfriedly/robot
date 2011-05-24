@@ -14,6 +14,7 @@
 #use "CdS.ic"
 #use "line.ic"
 #use "drive-straight.ic"
+#use "corn.ic"
 
 #define RED_BUTTON_TRIES 4
 
@@ -48,6 +49,17 @@ void step_treads2(int left, int right, long timeout) {
     sleep(0.1);
 }
 
+void bkgd_opto_check(void) {
+    long last = 0L;
+    
+    for(;;) {
+        if(stop_button() && mseconds() - last > 50L) {
+            printf("FL%d FR%d       BL%d BR%d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT), analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
+            last = mseconds();
+        }
+    }
+}
+
 
 /**
  * @brief main entry point
@@ -67,12 +79,14 @@ void main() {
     exp_servo_deg(SERVO_HAY, 0);
     
     init_shaft_encoders();
+    start_process(bkgd_opto_check());
     
     sleep(1.0);
     while(start_button())
       ;
     
-    for(;;) {     
+    #if 0
+      for(;0;) {     
         printf("Are you ready tostart WINNING?\n");
         wait_for_start();
         
@@ -111,7 +125,8 @@ void main() {
             gps_good_data();
         }
         
-        /*drive_straight(15);
+        /*
+        drive_straight(15);
         turn(62.5);
         
         gps_turn(100, 5);
@@ -123,16 +138,14 @@ void main() {
         drive_straight(-7);
         turn(-90.0);
         
-        dance_to_strip();*/
+        dance_to_strip();
+       */ 
         
         curve_to_wagon();
         step_treads(-10,-10);
-        turn(-30.0);
-        drive_back_to_shiny(0,2000L);
+        turn(-40.0);
+        drive_back_to_shiny(0, 2000L);
         follow_strip_back(0);
-        printf("LO%d LR%d", analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
-        
-        press_start();
         
         motor(MOTOR_LEFT, -80);
         motor(MOTOR_RIGHT, -80);
@@ -148,7 +161,22 @@ void main() {
         drive_down_hill();
         
         ao();
-        
-        
     }
+    #endif
+    
+    printf("Are you ready tostart WINNING?\n");
+    wait_for_start();
+    start_to_corn();
+    printf("Blue? %d\n", test_corn());
+    msleep(1500L);
+    
+    drive_straight(-10);
+    turn(-45.0);
+    drive_forward_to_shiny(0, 2000L);
+    printf("Blue? %d\n", test_corn());
+    
+    drive_straight(-10);
+    turn(-45.0);
+    drive_forward_to_shiny(0, 2000L);
+    printf("Blue? %d\n", test_corn());
 }

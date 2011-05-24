@@ -10,7 +10,7 @@
 #define SHAFT_LEFT 7
 #define SHAFT_RIGHT 12
 
-#define CDS_CELL 16
+#define CDS_SIDE 16
 #define CDS_FRONT 18
 
 #define SWITCH_WALL_RIGHT 15

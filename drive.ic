@@ -244,7 +244,7 @@ void drive_back_to_shiny(int go_to_front, long timeout) {
  * on a strip (unless the timeout is reached, of course).  If go_to_front is zero,
  * then this function will return with the back optos on a line.
  */
-void drive_forward_to_shiny(long timeout) {
+void drive_forward_to_shiny(int go_to_back, long timeout) {
     int shiny_ctr = 0;
     int high_water = 0;
     
@@ -263,24 +263,26 @@ void drive_forward_to_shiny(long timeout) {
         step_straight_forward(4);
     }
     
-    //Continue until the back optos are off of the shiny
-    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-    while((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < timeout)
-      step_straight_forward(4);
-    
-    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-    shiny_ctr = 0;
-    while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < timeout) {
-        if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
-            ++shiny_ctr;
-        } else {
-            shiny_ctr = 0;
+    if(go_to_back) {
+        //Continue until the back optos are off of the shiny
+        SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+        while((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < timeout)
+          step_straight_forward(4);
+        
+        SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+        shiny_ctr = 0;
+        while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < timeout) {
+            if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
+                ++shiny_ctr;
+            } else {
+                shiny_ctr = 0;
+            }
+            
+            step_straight_forward(4);
         }
         
-        step_straight_forward(4);
+        ao();
     }
-    
-    ao();
 }
 
 /**
@@ -291,20 +293,26 @@ void drive_forward_to_shiny(long timeout) {
  * Run the motors at unequal (but constant) power in order to angle right while
  * travelling forward.  Stop with both fron optosensors on the strip.
  */
-void angle_right_to_shiny(void) {
+void angle_right_to_shiny(int max_dist) {
     int shiny_ctr = 0;
+    int sw_disp = -1;
     
     //    printf("Drive to shiny. Angle right\n");
     
-    motor(MOTOR_LEFT,  80);
+    motor(MOTOR_LEFT,  100);
     motor(MOTOR_RIGHT, 100);
     
-    while(shiny_ctr < SHINY_TIME && !stop_button()) {
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
+    while(shiny_ctr < SHINY_TIME && !stop_button() && SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < max_dist*2) {
         if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
             shiny_ctr = 0;
         }
+        
+        if(digital(SWITCH_WALL_LEFT) != sw_disp)
+          printf("Switch: %d\n", sw_disp = digital(SWITCH_WALL_LEFT));
         
         //        if(mseconds() >= 50L) {
         //            printf("%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
@@ -385,7 +393,7 @@ void ccw_degrees(float deg) {
     motor(MOTOR_LEFT, -100);
     motor(MOTOR_RIGHT, 100);
     
-    while(((right_trans - SHAFT_RIGHT_COUNT) + (left_trans - SHAFT_LEFT_COUNT))/2 > 0 && mseconds() < 5000L)
+    while(((right_trans - SHAFT_RIGHT_COUNT) + (left_trans - SHAFT_LEFT_COUNT))/2 > 0 && mseconds() < 2000L)
       {
         /*
         if(SHAFT_LEFT_COUNT != disp_l || SHAFT_RIGHT_COUNT != disp_r) 
@@ -420,7 +428,7 @@ void cw_degrees(float deg) {
     reset_system_time();
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
-    while(mseconds() < 5000L)
+    while(mseconds() < 2000L)
       {
         diff_l = SHAFT_LEFT_COUNT - left_trans;
         diff_r = SHAFT_RIGHT_COUNT - right_trans;
@@ -461,9 +469,12 @@ void cw_degrees(float deg) {
  * @deprecated Replace by dancing and shaft encoder/GPS turns
  */
 void turn_cw_to_shiny(void) {
-    while(analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) {
-        cw_degrees(5.0);
+    while(analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD || analog(OPTO_FRONT_RIGHT) > OPTO_THRESHOLD) {
+        printf("%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
+        step_treads(1, -1);
+        msleep(250L);
     }
+    printf("%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
 }
 /*
 void align_toward_start(void) {
@@ -748,9 +759,9 @@ void dance_to_strip() {
 
 void pull_wagon(void) {
     step_treads(3, 3);        
-    step_treads(0, 16);
+    step_treads(0, 12);
     step_treads(10, 12);
-    step_treads(0, 16);
+    step_treads(0, 12);
     step_treads(23, 23);
     step_treads(14, 0);
     step_treads(12, 10);
@@ -782,6 +793,6 @@ void curve_to_wagon() {
         motor(MOTOR_LEFT, -50);
     }*/
 }
-    
-        
-    
+
+
+

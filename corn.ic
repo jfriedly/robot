@@ -1,40 +1,71 @@
+#use "drive.ic"
+#use "line.ic"
 #use "defines.ic"
-
-int switch_pressed(int sw) {
-    if(sw == SWITCH_BACK_RIGHT)
-      return !digital(SWITCH_BACK_RIGHT);
-    else
-      return digital(SWITCH_BACK_LEFT);
-}
+#use "drive-straight.ic"
 
 
-void back_to_wall(void) {
-    int l;
+/**
+ * @brief Drive from the starting area (facing west) to the corn area
+ */
+void start_to_corn(void) {
+    int shiny_ctr;
+    
+    turn(5.0);
+    drive_straight(50);
+    turn(-50.0);
+    gps_turn(45, 4);
+
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    
     reset_system_time();
-    while(mseconds() < 3000L) {
-        if(switch_pressed(SWITCH_BACK_LEFT)) {
-            l = 0;
-            motor(MOTOR_LEFT, 0);
-        } else {
-            l = 1;
-            motor(MOTOR_LEFT, -100);
-        }
-        
-        if(switch_pressed(SWITCH_BACK_RIGHT)) {
-            motor(MOTOR_RIGHT, 0);
-            if(l == 0)
-              break;
-        } else
-          motor(MOTOR_RIGHT, -100);
-      }
+    motor(MOTOR_LEFT,  100);
+    motor(MOTOR_RIGHT, 100);
+    while(!digital(SWITCH_WALL_LEFT) && SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < 220 && mseconds() < 7500L)
+      ;
+    
+    ao();
+    msleep(100L);
+    turn_cw_to_shiny();
+
+//    step_treads(5, 0);
 }
 
+
+/**
+ * @brief Drive from the rightmost corn strip (facing south) to the start area
+ *
+ * Using empirically determined values, drive back to the starting area.  Start
+ * on the middle corn strip, facing (approximately) south.  This function follows
+ * that strip, turns toward the starting area (parallel to the bumps), then drives
+ * between two bumps back to the start.  It then lines up facing north, ready
+ * to transition into drive_up_hill.
+ */
 void corn_to_start(void) {
-    turn(-90.0);
-    back_to_wall();
+    follow_strip_forward(1, 3000L);
     
-    drive_straight(50);
-    turn(-45.0);
+    drive_straight(13);
     
-    drive_straight(50);
+    turn(45.0);
+    gps_turn(40, 4);
+    
+    drive_straight(95);
+    
+    turn(60.0);
+    
+    drive_straight(20);
+    turn(90.0);
+    gps_turn(0, 4);
+}
+
+
+int test_corn(void) {
+    int cds;
+
+    follow_strip_forward(1, 3000L);
+    
+    press_start();
+    
+    drive_straight(-2);
+    
+    return analog(CDS_FRONT) >= 15;
 }

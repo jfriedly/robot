@@ -146,40 +146,76 @@ void step_treads(int left, int right) {
     sleep(0.1);
 }
 
+void follow_strip_forward(int left, long timeout) {
+    int i;
+    int edge_port = OPTO_FRONT_RIGHT, end_port = OPTO_FRONT_LEFT;
+    int on_motor = MOTOR_LEFT, off_motor = MOTOR_RIGHT;
+    
+    if(left) {
+        edge_port = OPTO_FRONT_LEFT;
+        end_port = OPTO_FRONT_RIGHT;
+        on_motor = MOTOR_RIGHT;
+        off_motor = MOTOR_LEFT;
+    }
+
+    reset_system_time();
+    
+    for(i=0; i<3; i++) {
+        for(;;) {
+            while(analog(end_port) < OPTO_THRESHOLD && mseconds() < timeout) {
+                if(analog(edge_port) < OPTO_THRESHOLD) {
+                    motor(on_motor, 100);
+                    motor(off_motor, 0);
+                } else {
+                    motor(on_motor, 0);
+                    motor(off_motor, 100);
+                }
+            }
+            
+            ao();
+            msleep(100L);
+            if(analog(end_port) >= OPTO_THRESHOLD)
+              break;
+        }
+    }
+}
+
+/*
 void follow_strip_forward(int left_bound) 
 {    
     int readingL, readingR;
-    
-    
-    /*
-    while(!start_button()) {
-        printf("L%d R%d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
-        sleep(0.05);
-    }
-*/  
+
     reset_system_time();
     //follow along the left boundary
     if(left_bound) //(analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) && (analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD))
       {
         printf("Left\n");
-        while(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD && mseconds() < 7500L)
-          {
-            readingL=analog(OPTO_FRONT_LEFT);
-            if(readingL > OPTO_THRESHOLD)
+        for(;;) {
+            while(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD && mseconds() < 7500L)
               {
-                motor(MOTOR_LEFT,MOT_PWR);
                 readingL=analog(OPTO_FRONT_LEFT);
+                if(readingL > OPTO_THRESHOLD)
+                  {
+                    motor(MOTOR_LEFT,  100);
+                    motor(MOTOR_RIGHT, 0);
+                    readingL=analog(OPTO_FRONT_LEFT);
+                    
+                }
                 
+                else if(readingL < OPTO_THRESHOLD)
+                  {
+                    motor(MOTOR_RIGHT, 100);
+                    motor(MOTOR_LEFT,  0);
+                    readingL=analog(OPTO_FRONT_LEFT);
+                }
             }
             
-            else if(readingL < OPTO_THRESHOLD)
-              {
-                motor(MOTOR_RIGHT,MOT_PWR);
-                readingL=analog(OPTO_FRONT_LEFT);
-            }
-            
-            sleep(0.01);
             ao();
+            msleep(100L);
+            if(analog(OPTO_FRONT_RIGHT) >= OPTO_THRESHOLD) {
+                printf("%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
+                break;
+            }
         }
     }
     
@@ -208,6 +244,7 @@ void follow_strip_forward(int left_bound)
         }
     }
 }
+*/
 
 void follow_strip_back(int left) 
 {    

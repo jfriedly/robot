@@ -54,7 +54,7 @@ void align_with_strip(int angle)
                 // turn clockwise to angle
                 printf("2");
                 if(trans_to_turn == 0)
-                {
+                  {
                     //go ctrclockwise for 1/100 of a second
                     motor(MOTOR_LEFT,-100);
                     motor(MOTOR_RIGHT,100);
@@ -76,7 +76,7 @@ void align_with_strip(int angle)
                 // turn clockwise to angle
                 printf("2");
                 if(trans_to_turn == 0)
-                {
+                  {
                     //go clockwise for 1/100 of a second
                     motor(MOTOR_LEFT,100);
                     motor(MOTOR_RIGHT,-100);
@@ -89,7 +89,7 @@ void align_with_strip(int angle)
             printf("\n");
         }
         
-         ao();
+        ao();
         while(!gps_get_data());
         while(!gps_get_data());
         while(!gps_get_data());
