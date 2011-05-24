@@ -40,20 +40,18 @@ void marquee(char s[], int lines) {
 /**
  * @brief Block until the CdS detects light
  *
+ * @param port This should be either CDS_SIDE or CDS_FRONT, for the side or front opto respectively.
+ *
  * If the CdS is near the starting light and has the sheild, then this won't
  * start until the light comes on.  If the shield is missing, then it will
  * probably start just from ambient light.
  */
-void wait_for_start(void) {
-    int pid;
-
-    pid = start_process(marquee("Im not bi-polarI'm bi-winning.I win here and I win there.   ", 4));
-    
-    while(mseconds() < 35000L) {
-        if(myanalog(CDS_SIDE) < CDS_THRESHOLD) {
+void wait_for_start(int port) {
+    for(;;) {
+        if(analog(port) < CDS_THRESHOLD) {
             msleep(250L);
-            if(myanalog(CDS_SIDE) < CDS_THRESHOLD)     
-              break;
+            if(analog(port) < CDS_THRESHOLD)     
+              return;
         }
         if(start_button()) {
             while(start_button())
@@ -61,6 +59,4 @@ void wait_for_start(void) {
             break;
         }
     }
-    
-    kill_process(pid);
 }

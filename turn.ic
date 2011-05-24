@@ -102,20 +102,23 @@ void cw_degrees(float deg) {
  * @deprecated Replace by dancing and shaft encoder/GPS turns
  */
 void turn_cw_to_shiny(void) {
-    while(myanalog(OPTO_FRONT_LEFT) >= OPTO_THRESHOLD || myanalog(OPTO_FRONT_RIGHT) >= OPTO_THRESHOLD) {
-        log_event(EV_EXTENDED+0, myanalog(OPTO_FRONT_LEFT));
-        log_event(EV_EXTENDED+1, myanalog(OPTO_FRONT_RIGHT));
+    while(analog(OPTO_FRONT_LEFT) >= OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) >= OPTO_THRESHOLD) {
+        printf("Turn CW to Shiny%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
+        //motor(MOTOR_LEFT, 100);
+        //motor(MOTOR_RIGHT, -100);
         step_treads(1,-1);
-        msleep(1000L);
+        msleep(75L);
     }
-    {
-        int i;
-        for(i=0; i<10; i++) {
-            log_event(EV_EXTENDED+8, myanalog(OPTO_FRONT_LEFT));
-            log_event(EV_EXTENDED+9, myanalog(OPTO_FRONT_RIGHT));
-        }
-        msleep(10L);
+    
+    while(analog(OPTO_FRONT_LEFT) >= OPTO_THRESHOLD || analog(OPTO_FRONT_RIGHT) >= OPTO_THRESHOLD) {
+        printf("Turn CW to Shiny%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
+        //motor(MOTOR_LEFT, 100);
+        //motor(MOTOR_RIGHT, -100);
+        step_treads(1,-1);
+        msleep(75L);
     }
+    
+    printf("Turn CW to Shiny%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
 }
 
 
@@ -129,7 +132,7 @@ void turn_cw_to_shiny(void) {
 void dance_to_strip() {
     int dist = 1;
     int dir = 1;
-    while(myanalog(OPTO_BACK_LEFT) > OPTO_THRESHOLD && myanalog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD && dist < 19) {
+    while(analog(OPTO_BACK_LEFT) > OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) > OPTO_THRESHOLD && dist < 19) {
         step_treads(dist * dir,-dist * dir);
         dist+=2;
         dir *= -1;

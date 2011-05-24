@@ -82,12 +82,12 @@ void step_straight_forward(int disparity) {
 // This still needs work.  Maybe just try using 1 optosensor code for Monday?
 
 void step_treads(int left, int right) {
-    int left_dir = 80, right_dir = 80;
+    int left_dir = 100, right_dir = 100;
     
     if(left < 0)
-      left_dir = -80;
+      left_dir = -100;
     if(right < 0)
-      right_dir = -80;
+      right_dir = -100;
     
     left = abs(left);
     right = abs(right);
