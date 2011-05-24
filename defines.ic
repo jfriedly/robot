@@ -36,7 +36,6 @@
 
 
 #define CORN_DOWN 160
-#define CORN_LIFT 100
 #define CORN_UP 60
 
 #use "encoders.ic"

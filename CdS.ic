@@ -11,6 +11,31 @@
 #use "util.ic"
 #use "defines.ic"
 
+void print15(char c[], int offs) {
+    int i;
+    for(i=0; i<15; i++)
+      printf("%c", c[offs + i]);
+    printf(" ");
+}
+
+void marquee(char s[], int lines) {
+    int start = 0;
+    long last=0L;
+    
+    for(;;) {
+        if(mseconds() - last > 1000L) {
+            print15(s, start*15);
+            if(start < lines-1)
+              print15(s, (start+1)*15);
+            printf("\n");
+            start++;
+            if(start >= lines)
+              start = 0;
+            last = mseconds();
+        }
+    }
+}
+
 //For running averages: http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#On-line_algorithm
 /**
  * @brief Block until the CdS detects light
@@ -20,16 +45,22 @@
  * probably start just from ambient light.
  */
 void wait_for_start(void) {
-    for(;;) {
-        if(analog(CDS_SIDE) < CDS_THRESHOLD) {
+    int pid;
+
+    pid = start_process(marquee("Im not bi-polarI'm bi-winning.I win here and I win there.   ", 4));
+    
+    while(mseconds() < 35000L) {
+        if(myanalog(CDS_SIDE) < CDS_THRESHOLD) {
             msleep(250L);
-            if(analog(CDS_SIDE) < CDS_THRESHOLD)     
-              return;
+            if(myanalog(CDS_SIDE) < CDS_THRESHOLD)     
+              break;
         }
         if(start_button()) {
             while(start_button())
               ;
-            return;
+            break;
         }
     }
+    
+    kill_process(pid);
 }

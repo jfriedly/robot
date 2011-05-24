@@ -45,7 +45,7 @@ void drive_up_hill() {
           motor(MOTOR_RIGHT, 90);
         
         //Check the optos
-        if(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD && analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) {
+        if(myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD && myanalog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
             shiny_ctr = 0;
@@ -56,7 +56,7 @@ void drive_up_hill() {
     //Go straight (ish) until the front sensors are off the shiny
     motor(MOTOR_RIGHT, 100);
     reset_system_time();
-    while((analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD || analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) && !start_button() && mseconds() < 500L)
+    while((myanalog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD || myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) && !start_button() && mseconds() < 500L)
       ;
     
     printf("Looking for back\n");
@@ -64,7 +64,7 @@ void drive_up_hill() {
     shiny_ctr = 0;
     reset_system_time();
     while(shiny_ctr < SHINY_TIME && !start_button() && mseconds() < 1500L) {
-        if(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) {
+        if(myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
             shiny_ctr = 0;
@@ -132,7 +132,7 @@ void drive_back_to_shiny(int go_to_front, long timeout) {
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
     while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < timeout) {
-        if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
+        if(myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
             shiny_ctr = 0;
@@ -149,7 +149,7 @@ void drive_back_to_shiny(int go_to_front, long timeout) {
         printf("Going til back off\n");
         //Continue until the back optos are off of the shiny
         SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-        while((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < timeout)
+        while((myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < timeout)
           step_straight_back(3);
         
         ao();
@@ -158,13 +158,13 @@ void drive_back_to_shiny(int go_to_front, long timeout) {
         SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
         shiny_ctr = 0;
         while(shiny_ctr < SHINY_TIME && mseconds() < timeout) {
-            if(l!=analog(OPTO_FRONT_LEFT) || r!=analog(OPTO_FRONT_RIGHT)) {
-                l = analog(OPTO_FRONT_LEFT);
-                r = analog(OPTO_FRONT_RIGHT);
+            if(l!=myanalog(OPTO_FRONT_LEFT) || r!=myanalog(OPTO_FRONT_RIGHT)) {
+                l = myanalog(OPTO_FRONT_LEFT);
+                r = myanalog(OPTO_FRONT_RIGHT);
                 printf("%d %d\n", l, r);
             }
             
-            if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
+            if(myanalog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
                 ++shiny_ctr;
             } else {
                 shiny_ctr = 0;
@@ -173,7 +173,7 @@ void drive_back_to_shiny(int go_to_front, long timeout) {
             step_straight_back(3);
         }
         
-        printf("Found front optos: %d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
+        printf("Found front optos: %d %d\n", myanalog(OPTO_FRONT_LEFT), myanalog(OPTO_FRONT_RIGHT));
     }
     
     ao();
@@ -199,8 +199,8 @@ void drive_forward_to_shiny(int go_to_back, long timeout) {
     
     reset_system_time();
     while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < timeout) {        
-        printf("%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
-        if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
+        printf("%d %d\n", myanalog(OPTO_FRONT_LEFT), myanalog(OPTO_FRONT_RIGHT));
+        if(myanalog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
             shiny_ctr = 0;
@@ -213,13 +213,13 @@ void drive_forward_to_shiny(int go_to_back, long timeout) {
     if(go_to_back) {
         //Continue until the back optos are off of the shiny
         SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-        while((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < timeout)
+        while((myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < timeout)
           step_straight_forward(4);
         
         SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
         shiny_ctr = 0;
         while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < timeout) {
-            if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
+            if(myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
                 ++shiny_ctr;
             } else {
                 shiny_ctr = 0;

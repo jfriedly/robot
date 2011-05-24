@@ -1,54 +1,8 @@
 #use "util.ic"
 
+persistent int play;
+
 int bpm = 62;
-
-//CHAMPIONS
-/*
-      ENCODE_NOTE(G, 3, 0, EN),
-      ENCODE_NOTE(B, 4, 0, EN),
-      ENCODE_NOTE(C, 4, 0, EN),
-      
-      ENCODE_NOTE(C, 4, 0, QND),
-      ENCODE_NOTE(C, 4, 0, QN),
-      ENCODE_NOTE(R, 0, 0, EN),
-      
-      ENCODE_NOTE(R, 0, 0, QN),
-      ENCODE_NOTE(G, 3, 0, EN),
-      ENCODE_NOTE(G, 3, 0, EN),
-      ENCODE_NOTE(B, 4,-1, EN),
-      ENCODE_NOTE(C, 4, 0, EN),
-      
-      ENCODE_NOTE(C, 4, 0, QND),
-      ENCODE_NOTE(R, 0, 0, QN),
-      //Missing one eighth
-      
-      ENCODE_NOTE(R, 0, 0, QN),
-      ENCODE_NOTE(G, 3, 0, EN),
-      ENCODE_NOTE(B, 4,-1, EN),
-      ENCODE_NOTE(C, 4, 0, EN),
-      
-      ENCODE_NOTE(C, 4, 0, EN),
-      ENCODE_NOTE(C, 4, 0, EN),
-      ENCODE_NOTE(G, 3, 0, EN),
-      ENCODE_NOTE(R, 0, 0, QN),
-      
-      ENCODE_NOTE(R, 0, 0, QN),
-      ENCODE_NOTE(G, 3, 0, EN),
-      ENCODE_NOTE(G, 3, 0, EN),
-      ENCODE_NOTE(D, 4, 0, SN),
-      ENCODE_NOTE(C, 4, 0, QND),
-      ENCODE_NOTE(A, 4, 1, SN),
-      ENCODE_NOTE(C, 4, 0, SN),
-      
-      ENCODE_NOTE(C, 4, 0, QND),
-      ENCODE_NOTE(C, 4, 0, EN),
-      ENCODE_NOTE(R, 0, 0, QN),
-      
-      0
-  };
-*/
-
-#use "champions.ic"
 
 void decode_note(int code, int *note, int *octave, int *sharp, int *len) {
     *note = code & 0x7;
@@ -109,10 +63,7 @@ void play_song(int song[]) {
 }
 
 
-int main() { 
-    for(;;) {
-        while(!start_button())
-          ;
-        play_song(champions);
-    }
+int main() {
+    play = !play;
+    if(play)
 }

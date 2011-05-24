@@ -2,7 +2,7 @@
 
 int main() {
     for(;;) {
-        printf("%d\n", analog(CDS_CELL));
+        printf("%d\n", myanalog(CDS_CELL));
         msleep(100L);
     }
 }

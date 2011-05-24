@@ -12,7 +12,7 @@ void start_to_corn(void) {
     
     turn(5.0);
     drive_straight(50);
-    turn(-50.0);
+    turn(-57.5);
     gps_turn(45, 4);
     
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
@@ -26,8 +26,6 @@ void start_to_corn(void) {
     ao();
     msleep(100L);
     turn_cw_to_shiny();
-    
-    //    step_treads(5, 0);
 }
 
 
@@ -63,29 +61,41 @@ int test_corn(void) {
     
     follow_strip_forward(1, 3000L);
     
-    press_start();
-    
     drive_straight(-2);
     
-    return analog(CDS_FRONT) >= 15;
+    cds = myanalog(CDS_FRONT);
+    
+    printf("CDS: %d\n", cds);
+    
+    return cds >= 15;
 }
 
 void pick_corn(void) {
     int i;
     
-    drive_straight(-10);
+    drive_straight(-15);
     
     exp_servo_deg(SERVO_CORN, CORN_DOWN);
-    msleep(250L);
+    msleep(500L);
     
-    drive_straight(15);
-    exp_servo_deg(SERVO_CORN, CORN_LIFT);
-    msleep(250L);
+    follow_strip_forward(1, 2000L);
     exp_servo_deg(SERVO_CORN, CORN_UP);
+    msleep(500L);
+    
     for(i=0;i<5;i++) {
-        drive_straight(-20);
-        msleep(250L);
+        drive_straight(-1);
+        exp_servo_deg(SERVO_CORN, CORN_UP);
+        msleep(500L);
     }
+    
+    exp_servo_deg(SERVO_CORN, CORN_UP);
+    msleep(500L);
+    
+    drive_straight(-30);
+    
+    exp_servo_deg(SERVO_CORN, 0);
+    msleep(500L);
+    
 }
 
 void do_corny_stuff(void) {
@@ -105,5 +115,5 @@ void do_corny_stuff(void) {
     drive_straight(-33);
     turn(-45.0);
     drive_forward_to_shiny(0, 2000L);
-    
+    pick_corn();
 }

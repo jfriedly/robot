@@ -17,6 +17,7 @@
 #use "step.ic"
 #use "gps.ic"
 #use "line.ic"
+#use "log.ic"
 
 
 //Use bitmasks to make it easier to read the sensors
@@ -33,14 +34,14 @@
 
 ///Check both front optosensors
 int opto_mask_front() {
-    return ((analog(OPTO_FRONT_LEFT)  < OPTO_THRESHOLD) <<  FRONT_LEFT_BIT)
-      |    ((analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) << FRONT_RIGHT_BIT);
+    return ((myanalog(OPTO_FRONT_LEFT)  < OPTO_THRESHOLD) <<  FRONT_LEFT_BIT)
+      |    ((myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) << FRONT_RIGHT_BIT);
 }
 
 ///Check both rear optosensors
 int opto_mask_back() {
-    return ((analog(OPTO_BACK_LEFT)   < OPTO_THRESHOLD) <<   BACK_LEFT_BIT)
-      |    ((analog(OPTO_BACK_RIGHT)  < OPTO_THRESHOLD) <<  BACK_RIGHT_BIT);
+    return ((myanalog(OPTO_BACK_LEFT)   < OPTO_THRESHOLD) <<   BACK_LEFT_BIT)
+      |    ((myanalog(OPTO_BACK_RIGHT)  < OPTO_THRESHOLD) <<  BACK_RIGHT_BIT);
 }
 
 ///Check all optosensors
@@ -122,10 +123,13 @@ void follow_strip_forward(int left, long timeout) {
     
     reset_system_time();
     
+    log_event(EV_EXTENDED+16, myanalog(end_port));
+    log_event(EV_EXTENDED+17, myanalog(edge_port));
+    
     for(i=0; i<3; i++) {
         for(;;) {
-            while(analog(end_port) < OPTO_THRESHOLD && mseconds() < timeout) {
-                if(analog(edge_port) < OPTO_THRESHOLD) {
+            while(myanalog(end_port) < OPTO_THRESHOLD && mseconds() < timeout) {
+                if(myanalog(edge_port) < OPTO_THRESHOLD) {
                     motor(on_motor, 100);
                     motor(off_motor, -30);
                 } else {
@@ -134,12 +138,13 @@ void follow_strip_forward(int left, long timeout) {
                 }
             }
             
-            printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port));
+            log_event(EV_EXTENDED+24, myanalog(end_port));
+            log_event(EV_EXTENDED+25, myanalog(edge_port));
             
-            ao();
-            msleep(100L);
-            if(analog(end_port) >= OPTO_THRESHOLD || mseconds() >= timeout) {
-                printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port));    
+            drive_straight(1);
+            if(myanalog(end_port) >= OPTO_THRESHOLD || mseconds() >= timeout) {
+                log_event(EV_EXTENDED+32, myanalog(end_port));
+                log_event(EV_EXTENDED+33, myanalog(edge_port));    
                 break;
             }
         }
@@ -154,31 +159,31 @@ void follow_strip_back(int left)
     if(left) 
       {
         reset_system_time();
-        printf("L%d R%d\n", analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
+        printf("L%d R%d\n", myanalog(OPTO_BACK_LEFT), myanalog(OPTO_BACK_RIGHT));
         for(;;)
           {
-            while(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && mseconds() < 7500L)
+            while(myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && mseconds() < 7500L)
               {
-                readingL=analog(OPTO_BACK_LEFT);
+                readingL=myanalog(OPTO_BACK_LEFT);
                 if(readingL > OPTO_THRESHOLD)
                   {
                     motor(MOTOR_LEFT, -100);
                     motor(MOTOR_RIGHT, 0);
-                    readingL=analog(OPTO_BACK_LEFT);
+                    readingL=myanalog(OPTO_BACK_LEFT);
                 }
                 
                 else //if(readingL < OPTO_THRESHOLD)
                   {
                     motor(MOTOR_LEFT, 0);
                     motor(MOTOR_RIGHT, -100);
-                    readingL=analog(OPTO_BACK_LEFT);
+                    readingL=myanalog(OPTO_BACK_LEFT);
                 }
             }
             
             ao();
             msleep(5L);
-            if(analog(OPTO_BACK_RIGHT) >= OPTO_THRESHOLD) {
-                printf("%d %d\n", analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
+            if(myanalog(OPTO_BACK_RIGHT) >= OPTO_THRESHOLD) {
+                printf("%d %d\n", myanalog(OPTO_BACK_LEFT), myanalog(OPTO_BACK_RIGHT));
                 break;
             }
         }
@@ -188,20 +193,20 @@ void follow_strip_back(int left)
     else 
       {
         reset_system_time();
-        while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && mseconds() < 7500L)
+        while(myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && mseconds() < 7500L)
           {
-            readingR=analog(OPTO_BACK_RIGHT);
+            readingR=myanalog(OPTO_BACK_RIGHT);
             if(readingR > OPTO_THRESHOLD)
               {
                 motor(MOTOR_RIGHT,-MOT_PWR);
-                readingR=analog(OPTO_BACK_LEFT);
+                readingR=myanalog(OPTO_BACK_LEFT);
                 
             }
             
             else if(readingR < OPTO_THRESHOLD)
               {
                 motor(MOTOR_LEFT,-MOT_PWR);
-                readingR=analog(OPTO_BACK_RIGHT);
+                readingR=myanalog(OPTO_BACK_RIGHT);
             }
             
             sleep(0.01);
