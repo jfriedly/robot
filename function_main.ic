@@ -36,10 +36,6 @@ void main() {
     
     init_shaft_encoders();
     
-    sleep(1.0);
-    while(start_button())
-      ;
-    
     #if 0
       for(;;) {     
         printf("Are you ready tostart WINNING?\n");
@@ -109,12 +105,15 @@ void main() {
     }
     #else
     
+    
+    
     printf("Are you ready tostart WINNING?\n");
     wait_for_start(CDS_SIDE);
     start_to_corn();
     test_corn();
     pick_corn();
     left_corn_cleanup();
+    corn_to_start();
     
     #endif
 }

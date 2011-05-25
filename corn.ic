@@ -84,6 +84,8 @@ int test_corn(void) {
 void pick_corn(void) {
     int i, pid;
     
+    msleep(2000L);
+    
     pid = start_process(check_switch());
     
     drive_straight(-16);
@@ -102,19 +104,22 @@ void pick_corn(void) {
         msleep(250L);
     }
     
-    for(i=0;i<2;i++) {
+    for(i=0;i<1;i++) {
         drive_straight(-15);
         exp_servo_deg(SERVO_CORN, 30);
         msleep(250L);
     }
     
-    for(i=0;i<3;i++) {
-        turn(45.0);
+    for(i=0;i<0;i++) {
+        turn(90.0);
         msleep(500L);
         
         turn(-45.0);
         msleep(500L);
     }
+    
+    turn(90.0);
+    msleep(500L);
     
     kill_process(pid);
 }
@@ -148,30 +153,27 @@ void do_corny_stuff(void) {
  * Postcondition: Robot will be on the middle strip, ready to go back to start (facing south).
  */ 
 void left_corn_cleanup(void) {
-    exp_servo_deg(SERVO_CORN, 0);
+    drive_straight(-5);
+    
+    turn(135.0);
+    gps_turn(45, 4);
+    
+    drive_forward_to_shiny(0, 1000L);
+    
+}
+
+
+void drop_corn(void) {
+    follow_strip_forward(0, 3000L);
+    exp_servo_deg(SERVO_CORN, 90);
     msleep(500L);
     
-    turn(45.0);
-    gps_turn(0, 4);
-    
-    for(;;) {
-        gps_good_data();
-        if(gps_y >= 109)
-          break;
-        drive_straight(3);
-    }
-    
-    turn(-90.0);
-    gps_turn(90, 4);
-    
-    for(;;) {
-        gps_good_data();
-        if(gps_x >= -39)
-          break;
-        drive_straight(2);
-    }
-    
-    turn(-90.0);
-    gps_turn(0, 4);
-    
+    motor(MOTOR_LEFT,-60);
+    motor(MOTOR_RIGHT,-60);
+    sleep(3.0);
+    ao();
+    // motors need love too
+    sleep(0.1);
+    exp_servo_deg(SERVO_CORN, 0);
+    msleep(500L);
 }
