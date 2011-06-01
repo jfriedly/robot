@@ -26,7 +26,7 @@
  * switch to detect the wall.  By hugging the wall, the robot avoids getting
  * caught in the tilled field.
  */
-void drive_up_hill() {
+int drive_up_hill() {
     //number of cycles for which the tested optosensors are over something shiny
     //The sensors will occasionally return low numbers when over a screw in the course
     // And sometimes
@@ -37,7 +37,7 @@ void drive_up_hill() {
     //Drive across the bumps and up the hill - angle right when off wall
     motor(MOTOR_LEFT, 100);
     reset_system_time();
-    while(shiny_ctr < SHINY_TIME && !start_button() && mseconds() < 6000L) {
+    while(shiny_ctr < SHINY_TIME && !start_button() && mseconds() < 7000L) {
         //If the switch is pressed, go straight.  Otherwise angle right.
         if(digital(SWITCH_WALL_RIGHT))
           motor(MOTOR_RIGHT,100);
@@ -51,6 +51,9 @@ void drive_up_hill() {
             shiny_ctr = 0;
         }
     }
+    
+    if(mseconds() >= 7000L)
+      return 1;
     
     printf("Front on shiny\n");
     //Go straight (ish) until the front sensors are off the shiny
@@ -73,6 +76,7 @@ void drive_up_hill() {
     
     //Stop
     ao();    
+    return 0;
 }
 
 
@@ -91,21 +95,22 @@ void drive_down_hill() {
     
     //Drive across the bumps and up the hill - angle right when off wall
     motor(MOTOR_RIGHT, 100);
-    while(1) {
+    reset_system_time();
+    while(mseconds() < 30000L) {
         //If the switch is pressed, go straight.  Otherwise angle right.
         if(digital(SWITCH_WALL_LEFT))
           motor(MOTOR_LEFT,100);
         else
-          motor(MOTOR_LEFT, 60);
+          motor(MOTOR_LEFT, 80);
     }
     
-    for(i=0; i<7; ++i) {
+    for(;;) {
+        motor(MOTOR_LEFT, -100);
+        motor(MOTOR_RIGHT, -100);
+        msleep(250L);
         motor(MOTOR_LEFT, 100);
         motor(MOTOR_RIGHT, 100);
         msleep(1000L);
-        motor(MOTOR_LEFT, -100);
-        motor(MOTOR_RIGHT, -100);
-        msleep(500L);
     }
     
 }
@@ -278,45 +283,60 @@ void drive_back_to_wall(void) {
 
 
 void pull_wagon(void) {
-    step_treads(3, 3);        
-    for(;;) {
-        msleep(1000L);
-        gps_good_data();
-        if(abs(gps_heading - 45) < 10)
-          break;
-        
-        step_treads(0, 12);
-        step_treads(10, 12);
-    }
-    step_treads(30, 30);
+    step_treads(3, 3);
+    step_treads(0, 12);
+    step_treads(10, 10);
+    gps_turn(25, 4);
+    /*
+    step_treads(14, 0);
+    step_treads(12, 10);
+    step_treads(14, 0);
     
-    for(;;) {
-        msleep(1000L);
-        gps_good_data();
-        if(gps_heading < 10 || digital(SWITCH_WALL_LEFT))
-          break;
-    
-        step_treads(14, 0);
-        step_treads(12, 10);
+    drive_straight(5);
+    turn_slow(30.0);
+    gps_turn(30, 4);
+    */
+    forward_to_wall();
+}
+
+void forward_to_wall() {
+    while(digital(SWITCH_WALL_LEFT) == 0) {
+        motor(MOTOR_LEFT, 100);
+        motor(MOTOR_RIGHT,80);
     }
+    ao();
 }
 
 void curve_to_wagon() {
-    int shiny_ctr = 0;
+    /*int shiny_ctr = 0;
     
-    step_treads(10,10);
+    step_treads(3,3);
+    
+    turn(-30.0);
+    gps_turn(15, 4);
+    
+    drive_straight(40);
+    
+    step_treads(-10,-10);
+    turn(-30.0);
+    gps_turn(135, 4);
+    drive_back_to_shiny(0, 2000L);*/
     reset_system_time();
-    
     motor(MOTOR_RIGHT, 75);
     motor(MOTOR_LEFT, 100);
     while(mseconds() < 1750L)
       ;
-    
     motor(MOTOR_RIGHT, 0);
     while(mseconds() < 2250L)
       ;
     ao();
-    sleep(0.05);  
+    sleep(0.05);
+    
+    // aligned with fence, go to strip now
+    step_treads(-10,-10);
+    turn(-30.0);
+    gps_turn(150, 4);
+    drive_back_to_shiny(0, 2000L);
 }
 
 

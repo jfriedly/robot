@@ -28,23 +28,38 @@
  */
 void step_straight_back(int disparity) {
     int low_power;
+    int power, side;
+    int old_p = -1, old_s = -1;
     
-    if(abs(SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT) > disparity)
-      low_power = 0;
-    else
-      low_power = 50;
+    if(abs(SHAFT_LEFT_COUNT - SHAFT_RIGHT_COUNT) > disparity) {
+        low_power = 0;
+        power = 2;
+    } else {
+        low_power = 80;
+        power = 1;
+    }
     
     if(SHAFT_LEFT_COUNT > SHAFT_RIGHT_COUNT) {
         motor(MOTOR_LEFT,  -low_power);
         motor(MOTOR_RIGHT, -100);
+        side = 1;
         
     } else if(SHAFT_LEFT_COUNT < SHAFT_RIGHT_COUNT) {
         motor(MOTOR_LEFT, -100);
         motor(MOTOR_RIGHT, -low_power);
+        side = -1;
     } else {
         motor(MOTOR_LEFT,  -100);
         motor(MOTOR_RIGHT, -100);
+        power = side = 0;
     }
+    
+    if(old_p != power && old_s != side) {
+        printf("Pow: %d Side:%d\n", power, side);
+        old_p = power;
+        old_s = side;
+    }
+        
 }
 
 

@@ -3,7 +3,6 @@
 #use "defines.ic"
 
 
-
 /**
  * @brief Drive from the starting area (facing west) to the corn area
  */
@@ -11,7 +10,7 @@ void start_to_corn(void) {
     int shiny_ctr;
     
     turn(5.0);
-    drive_straight(50);
+    drive_straight(45);
     turn(-50.0);
     gps_turn(45, 4);
     
@@ -72,13 +71,18 @@ int test_corn(void) {
     
     follow_strip_forward(1, 3000L);
     
-    drive_straight(-2);
+    drive_straight(-6);
     
     cds = analog(CDS_FRONT);
     
-    printf("CDS: %d\n", cds);
+    printf("CDS: %d - ", cds);
     
-    return cds >= 15;
+    if(cds < 20)
+      printf("Red\n");
+    else
+      printf("Blue\n");
+    
+    return cds >= 20;
 }
 
 void pick_corn(void) {
@@ -88,38 +92,32 @@ void pick_corn(void) {
     
     pid = start_process(check_switch());
     
-    drive_straight(-16);
+    drive_straight(-12);
     
-    exp_servo_deg(SERVO_CORN, 150);
+    exp_servo_deg(SERVO_CORN, 110);
     msleep(500L);
     
-    drive_straight(10);
+    drive_straight(12);
     
-    exp_servo_deg(SERVO_CORN, 30);
+    gps_align();
+    
+    exp_servo_deg(SERVO_CORN, 65);
+    // turn on electromagnet
+    exp_servo_deg(SERVO_HAY, 20);
+    msleep(200L);
+    
+    drive_straight(-7);
     msleep(500L);
-    
-    for(i=0;i<3;i++) {
-        drive_straight(-1);
-        exp_servo_deg(SERVO_CORN, 30);
-        msleep(250L);
-    }
-    
-    for(i=0;i<1;i++) {
-        drive_straight(-15);
-        exp_servo_deg(SERVO_CORN, 30);
-        msleep(250L);
-    }
-    
-    for(i=0;i<0;i++) {
-        turn(90.0);
-        msleep(500L);
-        
-        turn(-45.0);
-        msleep(500L);
-    }
-    
     turn(90.0);
-    msleep(500L);
+    msleep(1500L);
+    turn(-180.0);
+    msleep(1500L);
+    turn(90.0);
+    msleep(1500L);
+
+    exp_servo_deg(SERVO_CORN, 20);
+    msleep(200L);
+    exp_servo_deg(SERVO_HAY, 30);
     
     kill_process(pid);
 }
@@ -137,7 +135,7 @@ void do_corny_stuff(void) {
         pick_corn();
         return;
     }
-    
+   
     drive_straight(-33);
     turn(-45.0);
     drive_forward_to_shiny(0, 2000L);
@@ -149,19 +147,31 @@ void do_corny_stuff(void) {
  * @brief After picking up left corn, go to middle strip and prepare to return to start
  *
  * Precondition: Robot is approximately at south end of left (westernmost) corn strip, facing
- * roughly northeast.  This should be what the corn picking code does, if called on the west corn.
+ * roughly north.  This should be what the corn picking code does, if called on the west corn.
  * Postcondition: Robot will be on the middle strip, ready to go back to start (facing south).
  */ 
 void left_corn_cleanup(void) {
-    drive_straight(-5);
+    turn(-180.0);
+    printf("GPS to 135\n");
+    press_start();
     
-    turn(135.0);
-    gps_turn(45, 4);
+    gps_turn(135, 4);
     
-    drive_forward_to_shiny(0, 1000L);
+    SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
+    gps_continuous_enable();
+    
+    while((gps_y < 80 || gps_y >= 256) && (analog(OPTO_FRONT_LEFT) >= OPTO_THRESHOLD || analog(OPTO_FRONT_RIGHT) >= OPTO_THRESHOLD)) {
+        if((int)mseconds() & 0x6F == 0)
+          printf("Y: %d\n", gps_y);
+        step_straight_back(4);
+    }
+    
+    if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD || analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
+    }
+    
+    gps_continuous_disable();
     
 }
-
 
 void drop_corn(void) {
     follow_strip_forward(0, 3000L);

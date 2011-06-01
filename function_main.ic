@@ -10,10 +10,9 @@
 #use "defines.ic"
 #use "drive.ic"
 #use "servo/exp_servo_lib.ic"
-#use "servo/exp_servo_calibrate.ic"
 #use "CdS.ic"
 #use "line.ic"
-#use "corn.ic"
+//#use "corn.ic"
 
 #define RED_BUTTON_TRIES 4
 
@@ -25,7 +24,6 @@ void main() {
     int i, j, old;
     
     gps_initialize_knob();
-    gps_enable();
     
     exp_servo_min[SERVO_CORN] = exp_servo_min[SERVO_HAY] = 400;
     exp_servo_max[SERVO_CORN] = exp_servo_max[SERVO_HAY] = 4000;
@@ -35,13 +33,31 @@ void main() {
     exp_servo_deg(SERVO_HAY, 0);
     
     init_shaft_encoders();
+    /*
+    {
+        int x,d=-1;
+        for(;;) {
+            x = knob()/2;
+            if(x!=d)
+              printf("Ang: %d\n", d=x);
+            exp_servo_deg(SERVO_CORN, x);
+        }
+    }
+*/
     
-    #if 0
-      for(;;) {     
+    #if 1
+      for(;;) {
+        int up_hill=1;
         printf("Are you ready tostart WINNING?\n");
         wait_for_start(CDS_FRONT);
+        gps_enable();
         
-        drive_up_hill();
+        while(drive_up_hill()) {
+            exp_servo_deg(SERVO_CORN, 60);
+            msleep(500L);
+        }
+        
+        exp_servo_deg(SERVO_CORN, 0);
         
         turn(-70.0);
         
@@ -49,53 +65,55 @@ void main() {
         
         drive_back_to_shiny(1, 2250L);
         
-        gps_turn(82, 4);
+        msleep(2000L);
+        gps_good_data();
+        
+        if(gps_y < 185)
+          gps_turn(70, 4);
+        else
+          gps_turn(82, 4);
+        
         
         drive_back_to_shiny(0, 1500L);
         
-        follow_strip_back(1);
-        press_start();
-        follow_strip_back(1);
-        press_start();
-        follow_strip_back(1);
-        press_start();
+        follow_strip_back(0);
+        follow_strip_back(0);
+        follow_strip_back(0);
         
         drive_straight(-3);
         
-        exp_servo_deg(SERVO_HAY, 45);
+        //        exp_servo_deg(SERVO_HAY, 45);
         msleep(250L);
         exp_servo_deg(SERVO_HAY, 90);
-        msleep(250L);
+        msleep(250L);        
         exp_servo_deg(SERVO_HAY, 0);
         msleep(250L); 
+        
         
         gps_good_data();
         for(i=0;!gps_button && i < RED_BUTTON_TRIES;++i) {
             motor(MOTOR_LEFT, -100);
             motor(MOTOR_RIGHT, -100);
-            msleep(500L);
+            msleep(300L);
             
             motor(MOTOR_LEFT, 100);
             motor(MOTOR_RIGHT, 100);
-            msleep(200L);
+            msleep(150L);
             gps_good_data();
         }
         
         curve_to_wagon();
-        step_treads(-10,-10);
-        turn(-60.0);
-        gps_turn(145, 4);
-        drive_back_to_shiny(0, 2000L);
-        follow_strip_backward(0, 5000L);
+        
+        follow_strip_back(0);
+        follow_strip_back(0);
+        follow_strip_back(0);
+        
+        gps_align();
         
         motor(MOTOR_LEFT, -80);
         motor(MOTOR_RIGHT, -80);
         msleep(125L);
         ao();
-        
-        turn_slow(10.0);
-        turn_slow(-20.0);
-        turn_slow(10.0);
         
         pull_wagon();
         
@@ -105,13 +123,14 @@ void main() {
     }
     #else
     
-    
-    
     printf("Are you ready tostart WINNING?\n");
     wait_for_start(CDS_SIDE);
+    gps_enable();
     start_to_corn();
     test_corn();
     pick_corn();
+    printf("Ready to cleanupPress start\n");
+    press_start();
     left_corn_cleanup();
     corn_to_start();
     

@@ -33,6 +33,7 @@ void marquee(char s[], int lines) {
               start = 0;
             last = mseconds();
         }
+        defer();
     }
 }
 
@@ -47,6 +48,8 @@ void marquee(char s[], int lines) {
  * probably start just from ambient light.
  */
 void wait_for_start(int port) {
+    int pid = start_process(marquee("Im not bi-polarI'm bi-winning.I win here and I win there.   ", 4));
+    
     for(;;) {
         if(analog(port) < CDS_THRESHOLD) {
             msleep(250L);
@@ -59,4 +62,6 @@ void wait_for_start(int port) {
             break;
         }
     }
+    
+    kill_process(pid);
 }
