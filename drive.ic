@@ -180,6 +180,7 @@ void drive_back_to_shiny(int go_to_front, long timeout) {
     ao();
 }
 
+
 /**
  * @brief Drive forwards to reach a metal strip.
  *
@@ -260,67 +261,16 @@ void angle_right_to_shiny(int max_dist) {
         
         if(digital(SWITCH_WALL_LEFT) != sw_disp)
           printf("Switch: %d\n", sw_disp = digital(SWITCH_WALL_LEFT));
-        
-        //        if(mseconds() >= 50L) {
-        //            printf("%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
-        //            reset_system_time();
-        //        }
-        
     }
     
     ao();
     
 }
 
-
-
-///**
-// * @brief Align self with metal strip
-// * @deprecated Is this used anywhere?
-// */
-//void drive_strip() {
-//    while(!stop_button()) {
-//        int i;
-//        
-//        for(i=2;i<7;++i) {
-//            printf("%d",i);
-//            print_hex_byte(analog(i));
-//            printf(" ");
-//        }
-//        
-//        printf("\n");
-//        sleep(0.1);
-//    }
-//}
 
 /**
- * @brief Turn by deg, relative to current position
- * @param deg Degrees to turn.  Positive is CCW, negative is CW.
- *
- * This will repeatedly call [c]cw_degrees to turn.
+ * @brief Drives backwards until is squares up with a wall by testing the back switches.
  */
-void turn(float deg) {
-    if(deg > 0.0) {
-        while(deg > 45.0) {
-            ccw_degrees(45.0);
-            deg -= 45.0;
-        }
-        
-        ccw_degrees(deg);
-    } else if(deg < 0.0) {
-        while(deg < -45.0) {
-            cw_degrees(45.0);
-            deg += 45.0;
-        }
-        
-        cw_degrees(-deg);
-    }
-}
-
-    ao();
-}
-
-
 void drive_back_to_wall(void) {
     while(!digital(SWITCH_BACK_LEFT) || !digital(SWITCH_BACK_RIGHT)) {
         if(!digital(SWITCH_BACK_LEFT))
@@ -336,6 +286,11 @@ void drive_back_to_wall(void) {
 }
 
 
+/**
+ * @brief Pulls the wagon from the barn and back to the start area.
+ *
+ * All of these values were determined empirically.
+ */
 void pull_wagon(void) {
     step_treads(3, 3);        
     step_treads(0, 12);
@@ -349,6 +304,12 @@ void pull_wagon(void) {
     step_treads(14, 0);
 }
 
+
+/**
+ * @brief Curves from the hay bale elvator to square up with the fence in front of the wagon strip.
+ *
+ * Times out after 1.75s.
+ */
 void curve_to_wagon() {
     int shiny_ctr = 0;
     
@@ -359,10 +320,19 @@ void curve_to_wagon() {
     motor(MOTOR_LEFT, 100);
     while(mseconds() < 1750L);
     ao();
+	// motors need love too
     sleep(0.05);  
 }
 
 
+/**
+ * @brief Does what it says, it drives straight for a number of shaft encoder counts.
+ * @param trans Number of encoder counts to do before exiting.
+ *
+ * Has a built-in system to auto correct the robot's path if the two shaft are ever off by even a single count.
+ * This part grows in power as the shaft counts disparity increases.
+ * Times out after 5s.
+ */
 void drive_straight(int trans) {
     int dir;
     int low_pwr;

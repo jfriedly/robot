@@ -76,11 +76,14 @@ void step_straight_forward(int disparity) {
 }
 
 
-// Precondition: Front sensors straddling boundary
-// Precondition: Back right sensor on line
-
-// This still needs work.  Maybe just try using 1 optosensor code for Monday?
-
+/**
+ * @brief Drive by counting shaft encoder transitions.
+ * @param left Number of shaft counts to move the left treads
+ * @param right Number of shaft counts to move the right tread
+ *
+ * Sets each of the shaft counts to zero and they then get incremented by the encoder library.
+ * Has a 3 second timeout period.
+ */
 void step_treads(int left, int right) {
     int left_dir = 80, right_dir = 80;
     
@@ -113,6 +116,12 @@ void step_treads(int left, int right) {
 }
 
 
+/**
+ * @brief Same as step_treads() but with a variable time out
+ * @param left Number of shaft counts to move the left treads
+ * @param right Number of shaft counts to move the right treads
+ * @param timeout Amount of time in ms to wait before it times out
+ */
 void step_treads2(int left, int right, long timeout) {
     int left_dir = 100, right_dir = 100;
     

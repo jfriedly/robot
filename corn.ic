@@ -6,6 +6,8 @@
 
 /**
  * @brief Drive from the starting area (facing west) to the corn area
+ * 
+ * Assumes starting in the template position.
  */
 void start_to_corn(void) {
     int shiny_ctr;
@@ -26,8 +28,6 @@ void start_to_corn(void) {
     ao();
     msleep(100L);
     turn_cw_to_shiny();
-
-//    step_treads(5, 0);
 }
 
 
@@ -58,6 +58,12 @@ void corn_to_start(void) {
 }
 
 
+/**
+ * @brief Checks to see if the corn light underneath the robot is red or blue.
+ * @return Returns 1 if the light is blue, 0 if not.
+ *
+ * Currently has a press_start() in there for debugging.
+ */
 int test_corn(void) {
     int cds;
 
