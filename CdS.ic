@@ -11,26 +11,58 @@
 #use "util.ic"
 #use "defines.ic"
 
+void print15(char c[], int offs) {
+    int i;
+    for(i=0; i<15; i++)
+      printf("%c", c[offs + i]);
+    printf(" ");
+}
+
+void marquee(char s[], int lines) {
+    int start = 0;
+    long last=0L;
+    
+    for(;;) {
+        if(mseconds() - last > 1000L) {
+            print15(s, start*15);
+            if(start < lines-1)
+              print15(s, (start+1)*15);
+            printf("\n");
+            start++;
+            if(start >= lines)
+              start = 0;
+            last = mseconds();
+        }
+        defer();
+    }
+}
+
 //For running averages: http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#On-line_algorithm
 /**
  * @brief Block until the CdS detects light
+ *
+ * @param port This should be either CDS_SIDE or CDS_FRONT, for the side or front opto respectively.
  *
  * If the CdS is near the starting light and has the sheild, then this won't
  * start until the light comes on.  If the shield is missing, then it will
  * probably start just from ambient light.
  */
-void wait_for_start(void) {
+void wait_for_start(int port) {
+    int pid = start_process(marquee("Im not bi-polarI'm bi-winning.I win here and I win there.   ", 4));
+    
     for(;;) {
-        if(analog(CDS_SIDE) < CDS_THRESHOLD) {
+        if(analog(port) < CDS_THRESHOLD) {
             msleep(250L);
-            if(analog(CDS_SIDE) < CDS_THRESHOLD)     
+            if(analog(port) < CDS_THRESHOLD)     
               return;
         }
         if(start_button()) {
             while(start_button())
               ;
-            return;
+            break;
         }
     }
+    
+    kill_process(pid);
 }
 

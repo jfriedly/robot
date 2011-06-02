@@ -12,7 +12,6 @@
 #use "servo/exp_servo_calibrate.ic"
 #use "CdS.ic"
 #use "line.ic"
-#use "drive-straight.ic"
 #use "turn-slow.ic"
 #use "turn.ic"
 #use "step.ic"
@@ -97,7 +96,7 @@ void align_back_cw(void) {
             ao();
             return;
         }
-
+        
         if((mask & (FRONT_LEFT_MASK | FRONT_RIGHT_MASK)) == FRONT_LEFT_MASK) {
             motor(MOTOR_LEFT, 100);
             motor(MOTOR_RIGHT, 100);
@@ -122,6 +121,7 @@ void follow_strip_forward(int left, long timeout) {
     int i;
     int edge_port = OPTO_FRONT_RIGHT, end_port = OPTO_FRONT_LEFT;
     int on_motor = MOTOR_LEFT, off_motor = MOTOR_RIGHT;
+    int last;
     
     if(left) {
         edge_port = OPTO_FRONT_LEFT;
@@ -129,7 +129,7 @@ void follow_strip_forward(int left, long timeout) {
         on_motor = MOTOR_RIGHT;
         off_motor = MOTOR_LEFT;
     }
-
+    
     reset_system_time();
     
     for(i=0; i<3; i++) {
@@ -138,42 +138,45 @@ void follow_strip_forward(int left, long timeout) {
                 if(analog(edge_port) < OPTO_THRESHOLD) {
                     motor(on_motor, 100);
                     motor(off_motor, 0);
+                    last = 1;
                 } else {
                     motor(on_motor, 0);
                     motor(off_motor, 100);
+                    last = 0;
                 }
             }
             
-            ao();
+            printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port));
+            
             msleep(100L);
-            if(analog(end_port) >= OPTO_THRESHOLD)
-              break;
+            //If the last was on, and on == RIGHT, or if last was off, and off == RIGHT, then step right
+            if(last ^ (on_motor == MOTOR_LEFT))
+              step_treads(1, 0);
+            //Otherwise step left
+            else
+              step_treads(0, 1);
+            if(analog(end_port) >= OPTO_THRESHOLD || mseconds() >= timeout) {
+                printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port)); 
+                msleep(250L);
+                break;
+            }
         }
     }
 }
 
 
-/**
- * @brief Follow a metal strip backwards by reading the back optosensors.
- * @param left Tells it whether to follow the left or right boundary (1 or 0)
- *
- * Works by running a motor at 100% power until the left optosensor crosses the boundary, then it runs the other motor at 100% power.  
- * Finds the end of the strip by waiting until the right optosensor loses the strip.
- * Times out after 7.5s.
- */
-void follow_strip_back(int left) 
-{    
+void follow_strip_backward(int left, long timeout) {
     int i;
-    int edge_port = OPTO_BACK_RIGHT, end_port = OPTO_BACK_LEFT;
+    int edge_port = OPTO_FRONT_RIGHT, end_port = OPTO_FRONT_LEFT;
     int on_motor = MOTOR_LEFT, off_motor = MOTOR_RIGHT;
     
     if(left) {
-        edge_port = OPTO_BACK_LEFT;
-        end_port = OPTO_BACK_RIGHT;
+        edge_port = OPTO_FRONT_LEFT;
+        end_port = OPTO_FRONT_RIGHT;
         on_motor = MOTOR_RIGHT;
         off_motor = MOTOR_LEFT;
     }
-
+    
     reset_system_time();
     
     for(i=0; i<3; i++) {
@@ -189,10 +192,87 @@ void follow_strip_back(int left)
             }
             
             ao();
+            printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port));
+            
             msleep(100L);
-            if(analog(end_port) >= OPTO_THRESHOLD)
-              break;
+            motor(off_motor, -100);
+            motor(on_motor, 0);
+            msleep(100L);
+            ao();
+            if(analog(end_port) >= OPTO_THRESHOLD || mseconds() >= timeout) {
+                printf("End:%d Edge:%d\n", analog(end_port), analog(edge_port)); 
+                break;
+            }
         }
     }
+}
+
+
+/**
+ * @brief Follow a metal strip backwards by reading the back optosensors.
+ * @param left Tells it whether to follow the left or right boundary (1 or 0)
+ *
+ * Works by running a motor at 100% power until the left optosensor crosses the boundary, then it runs the other motor at 100% power.  
+ * Finds the end of the strip by waiting until the right optosensor loses the strip.
+ * Times out after 7.5s.
+ */
+void follow_strip_back(int left) 
+{    
+    int readingL, readingR;
+	
+    //follow back along left boundary
+    if(left) 
+      {
+        reset_system_time();
+        printf("L%d R%d\n", analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
+        for(;;)
+          {
+            while(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && mseconds() < 7500L)
+              {
+                readingL=analog(OPTO_BACK_LEFT);
+                if(readingL > OPTO_THRESHOLD)
+                  {
+                    motor(MOTOR_LEFT, -100);
+                    motor(MOTOR_RIGHT, 0);
+                    readingL=analog(OPTO_BACK_LEFT);
+                }
+                
+                else //if(readingL < OPTO_THRESHOLD)
+                  {
+                    motor(MOTOR_LEFT, 0);
+                    motor(MOTOR_RIGHT, -100);
+                    readingL=analog(OPTO_BACK_LEFT);
+                }
+            }
+            
+            msleep(5L);
+            ao();
+            if(analog(OPTO_BACK_RIGHT) >= OPTO_THRESHOLD) {
+                printf("%d %d\n", analog(OPTO_BACK_LEFT), analog(OPTO_BACK_RIGHT));
+                break;
+            }
+        }
+    }
+
+	else {
+    	reset_system_time();
+    
+        while(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && mseconds() < 7500L) {
+            readingR=analog(OPTO_BACK_RIGHT);
+            if(readingR > OPTO_THRESHOLD) {
+                    motor(MOTOR_RIGHT, -100);
+                    motor(MOTOR_LEFT, 0);
+                    readingR=analog(OPTO_BACK_RIGHT);
+        	}
+                
+            else {
+                    motor(MOTOR_RIGHT, 0);
+                    motor(MOTOR_LEFT, -100);
+                    readingR=analog(OPTO_BACK_RIGHT);
+        	}
+        msleep(5L);
+        ao();
+   	 	}
+	}
 }
 

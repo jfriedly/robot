@@ -46,6 +46,6 @@ int main() {
         print4(gps_heading);
         printf("  ");
         
-        printf("E:%d B:%d\n", gps_gate, gps_solar);
+        printf("B:%d R:%d\n", gps_button, gps_bin);
     }
 }

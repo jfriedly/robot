@@ -27,7 +27,8 @@ with open(sys.argv[1]) as f:
             notes.append(note | (octave << 3) | ((accidental+1)<<7) | (length << 8))
 
     print 'int champions[] = {'
-    for n in notes:
+    for n in notes[:-1]:
         print '  %d,' % n
+    print     '  %d'  % notes[-1] 
     print '};'
 

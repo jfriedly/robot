@@ -11,7 +11,7 @@
 #use "servo/exp_servo_calibrate.ic"
 #use "CdS.ic"
 #use "line.ic"
-#use "drive-straight.ic"
+
 #use "turn-slow.ic"
 #use "turn.ic"
 #use "step.ic"
@@ -65,7 +65,7 @@ void ccw_degrees(float deg) {
     motor(MOTOR_RIGHT, 100);
     
     while(((right_trans - SHAFT_RIGHT_COUNT) + (left_trans - SHAFT_LEFT_COUNT))/2 > 0 && mseconds() < 5000L)
-		; 
+      ; 
     ao();
 }
 
@@ -92,7 +92,7 @@ void cw_degrees(float deg) {
     motor(MOTOR_LEFT, 100);
     
     while(((right_trans - SHAFT_RIGHT_COUNT) + (left_trans - SHAFT_LEFT_COUNT))/2 > 0 && mseconds() < 5000L)
-		; 
+      ; 
     ao();
 }
 
@@ -102,9 +102,23 @@ void cw_degrees(float deg) {
  * @deprecated Replace by dancing and shaft encoder/GPS turns
  */
 void turn_cw_to_shiny(void) {
-    while(analog(OPTO_FRONT_LEFT) > OPTO_THRESHOLD) {
-        cw_degrees(5.0);
+    while(analog(OPTO_FRONT_LEFT) >= OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) >= OPTO_THRESHOLD) {
+        printf("Turn CW to Shiny%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
+        //motor(MOTOR_LEFT, 100);
+        //motor(MOTOR_RIGHT, -100);
+        step_treads(1,-1);
+        msleep(75L);
     }
+    
+    while(analog(OPTO_FRONT_LEFT) >= OPTO_THRESHOLD || analog(OPTO_FRONT_RIGHT) >= OPTO_THRESHOLD) {
+        printf("Turn CW to Shiny%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
+        //motor(MOTOR_LEFT, 100);
+        //motor(MOTOR_RIGHT, -100);
+        step_treads(1,-1);
+        msleep(75L);
+    }
+    
+    printf("Turn CW to Shiny%d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
 }
 
 

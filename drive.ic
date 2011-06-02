@@ -11,7 +11,6 @@
 #use "servo/exp_servo_calibrate.ic"
 #use "CdS.ic"
 #use "line.ic"
-#use "drive-straight.ic"
 #use "turn-slow.ic"
 #use "turn.ic"
 #use "step.ic"
@@ -27,7 +26,7 @@
  * switch to detect the wall.  By hugging the wall, the robot avoids getting
  * caught in the tilled field.
  */
-void drive_up_hill() {
+int drive_up_hill() {
     //number of cycles for which the tested optosensors are over something shiny
     //The sensors will occasionally return low numbers when over a screw in the course
     // And sometimes
@@ -38,7 +37,7 @@ void drive_up_hill() {
     //Drive across the bumps and up the hill - angle right when off wall
     motor(MOTOR_LEFT, 100);
     reset_system_time();
-    while(shiny_ctr < SHINY_TIME && !start_button() && mseconds() < 6000L) {
+    while(shiny_ctr < SHINY_TIME && !start_button() && mseconds() < 7000L) {
         //If the switch is pressed, go straight.  Otherwise angle right.
         if(digital(SWITCH_WALL_RIGHT))
           motor(MOTOR_RIGHT,100);
@@ -46,18 +45,21 @@ void drive_up_hill() {
           motor(MOTOR_RIGHT, 90);
         
         //Check the optos
-        if(analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD && analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) {
+        if(myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD && myanalog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
             shiny_ctr = 0;
         }
     }
     
+    if(mseconds() >= 7000L)
+      return 1;
+    
     printf("Front on shiny\n");
     //Go straight (ish) until the front sensors are off the shiny
     motor(MOTOR_RIGHT, 100);
     reset_system_time();
-    while((analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD || analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) && !start_button() && mseconds() < 500L)
+    while((myanalog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD || myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) && !start_button() && mseconds() < 500L)
       ;
     
     printf("Looking for back\n");
@@ -65,7 +67,7 @@ void drive_up_hill() {
     shiny_ctr = 0;
     reset_system_time();
     while(shiny_ctr < SHINY_TIME && !start_button() && mseconds() < 1500L) {
-        if(analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) {
+        if(myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD && myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
             shiny_ctr = 0;
@@ -74,6 +76,7 @@ void drive_up_hill() {
     
     //Stop
     ao();    
+    return 0;
 }
 
 
@@ -92,21 +95,22 @@ void drive_down_hill() {
     
     //Drive across the bumps and up the hill - angle right when off wall
     motor(MOTOR_RIGHT, 100);
-    while(1) {
+    reset_system_time();
+    while(mseconds() < 30000L) {
         //If the switch is pressed, go straight.  Otherwise angle right.
         if(digital(SWITCH_WALL_LEFT))
           motor(MOTOR_LEFT,100);
         else
-          motor(MOTOR_LEFT, 60);
+          motor(MOTOR_LEFT, 80);
     }
     
-    for(i=0; i<7; ++i) {
+    for(;;) {
+        motor(MOTOR_LEFT, -100);
+        motor(MOTOR_RIGHT, -100);
+        msleep(250L);
         motor(MOTOR_LEFT, 100);
         motor(MOTOR_RIGHT, 100);
         msleep(1000L);
-        motor(MOTOR_LEFT, -100);
-        motor(MOTOR_RIGHT, -100);
-        msleep(500L);
     }
     
 }
@@ -133,7 +137,7 @@ void drive_back_to_shiny(int go_to_front, long timeout) {
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
     while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < timeout) {
-        if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
+        if(myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
             shiny_ctr = 0;
@@ -150,22 +154,22 @@ void drive_back_to_shiny(int go_to_front, long timeout) {
         printf("Going til back off\n");
         //Continue until the back optos are off of the shiny
         SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-        while((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < timeout)
+        while((myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < timeout)
           step_straight_back(3);
         
         ao();
-
+        
         printf("Finding front optos\n");
         SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
         shiny_ctr = 0;
         while(shiny_ctr < SHINY_TIME && mseconds() < timeout) {
-            if(l!=analog(OPTO_FRONT_LEFT) || r!=analog(OPTO_FRONT_RIGHT)) {
-                l = analog(OPTO_FRONT_LEFT);
-                r = analog(OPTO_FRONT_RIGHT);
+            if(l!=myanalog(OPTO_FRONT_LEFT) || r!=myanalog(OPTO_FRONT_RIGHT)) {
+                l = myanalog(OPTO_FRONT_LEFT);
+                r = myanalog(OPTO_FRONT_RIGHT);
                 printf("%d %d\n", l, r);
             }
             
-            if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
+            if(myanalog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
                 ++shiny_ctr;
             } else {
                 shiny_ctr = 0;
@@ -174,7 +178,7 @@ void drive_back_to_shiny(int go_to_front, long timeout) {
             step_straight_back(3);
         }
         
-        printf("Found front optos: %d %d\n", analog(OPTO_FRONT_LEFT), analog(OPTO_FRONT_RIGHT));
+        printf("Found front optos: %d %d\n", myanalog(OPTO_FRONT_LEFT), myanalog(OPTO_FRONT_RIGHT));
     }
     
     ao();
@@ -200,8 +204,9 @@ void drive_forward_to_shiny(int go_to_back, long timeout) {
     SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
     
     reset_system_time();
-    while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < timeout) {
-        if(analog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && analog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
+    while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < timeout) {        
+        printf("%d %d\n", myanalog(OPTO_FRONT_LEFT), myanalog(OPTO_FRONT_RIGHT));
+        if(myanalog(OPTO_FRONT_LEFT) < OPTO_THRESHOLD && myanalog(OPTO_FRONT_RIGHT) < OPTO_THRESHOLD) {
             ++shiny_ctr;
         } else {
             shiny_ctr = 0;
@@ -209,17 +214,18 @@ void drive_forward_to_shiny(int go_to_back, long timeout) {
         
         step_straight_forward(4);
     }
+    ao();
     
     if(go_to_back) {
         //Continue until the back optos are off of the shiny
         SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
-        while((analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < timeout)
+        while((myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD || myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) && mseconds() < timeout)
           step_straight_forward(4);
         
         SHAFT_LEFT_COUNT = SHAFT_RIGHT_COUNT = 0;
         shiny_ctr = 0;
         while(shiny_ctr < SHINY_TIME && !stop_button() && mseconds() < timeout) {
-            if(analog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && analog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
+            if(myanalog(OPTO_BACK_LEFT) < OPTO_THRESHOLD && myanalog(OPTO_BACK_RIGHT) < OPTO_THRESHOLD) {
                 ++shiny_ctr;
             } else {
                 shiny_ctr = 0;
@@ -229,6 +235,8 @@ void drive_forward_to_shiny(int go_to_back, long timeout) {
         }
         
         ao();
+    } else {
+        drive_straight(-1);
     }
 }
 
@@ -262,9 +270,10 @@ void angle_right_to_shiny(int max_dist) {
         if(digital(SWITCH_WALL_LEFT) != sw_disp)
           printf("Switch: %d\n", sw_disp = digital(SWITCH_WALL_LEFT));
     }
-    
+    while(!digital(SWITCH_WALL_LEFT) && SHAFT_LEFT_COUNT + SHAFT_RIGHT_COUNT < max_dist*2)
+      ;
+
     ao();
-    
 }
 
 
@@ -272,8 +281,8 @@ void angle_right_to_shiny(int max_dist) {
  * @brief Drives backwards until is squares up with a wall by testing the back switches.
  */
 void drive_back_to_wall(void) {
-    while(!digital(SWITCH_BACK_LEFT) || !digital(SWITCH_BACK_RIGHT)) {
-        if(!digital(SWITCH_BACK_LEFT))
+    while(!digital(SWITCH_CORN) || !digital(SWITCH_BACK_RIGHT)) {
+        if(!digital(SWITCH_CORN))
           motor(MOTOR_LEFT, -100);
         else
           motor(MOTOR_LEFT, 0);
@@ -292,16 +301,28 @@ void drive_back_to_wall(void) {
  * All of these values were determined empirically.
  */
 void pull_wagon(void) {
-    step_treads(3, 3);        
+    step_treads(3, 3);
     step_treads(0, 12);
-    step_treads(10, 12);
-    step_treads(0, 12);
-    step_treads(23, 23);
+    step_treads(10, 10);
+    gps_turn(25, 4);
+    /*
     step_treads(14, 0);
     step_treads(12, 10);
     step_treads(14, 0);
-    step_treads(12, 10);
-    step_treads(14, 0);
+    
+    drive_straight(5);
+    turn_slow(30.0);
+    gps_turn(30, 4);
+    */
+    forward_to_wall();
+}
+
+void forward_to_wall() {
+    while(digital(SWITCH_WALL_LEFT) == 0) {
+        motor(MOTOR_LEFT, 100);
+        motor(MOTOR_RIGHT,80);
+    }
+    ao();
 }
 
 
@@ -311,17 +332,36 @@ void pull_wagon(void) {
  * Times out after 1.75s.
  */
 void curve_to_wagon() {
-    int shiny_ctr = 0;
+    /*int shiny_ctr = 0;
     
-    step_treads(10,10);
+    step_treads(3,3);
+    
+    turn(-30.0);
+    gps_turn(15, 4);
+    
+    drive_straight(40);
+    
+    step_treads(-10,-10);
+    turn(-30.0);
+    gps_turn(135, 4);
+    drive_back_to_shiny(0, 2000L);*/
     reset_system_time();
-    
     motor(MOTOR_RIGHT, 75);
     motor(MOTOR_LEFT, 100);
-    while(mseconds() < 1750L);
+    while(mseconds() < 1750L)
+      ;
+    motor(MOTOR_RIGHT, 0);
+    while(mseconds() < 2250L)
+      ;
     ao();
 	// motors need love too
     sleep(0.05);  
+    
+    // aligned with fence, go to strip now
+    step_treads(-10,-10);
+    turn(-30.0);
+    gps_turn(150, 4);
+    drive_back_to_shiny(0, 2000L);
 }
 
 

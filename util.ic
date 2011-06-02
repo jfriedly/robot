@@ -5,6 +5,7 @@
  * @date   4/25/2011
  */
 
+#use "defines.ic"
 
 
 /**
@@ -103,34 +104,6 @@ float fabs(float x) {
       return x;
 }
 
-float rad_to_deg(float x) {
-    return x * 180.0 / PI;
-}
-
-/**
- * @brief Argument of a vector (x,y)
- * @param x The x coordinate of the vector
- * @param y The y coordinate of the vector
- * @return The angle of the vector (x,y)
- */
-float arg(float x, float y) {
-    if(x>0.0) {
-        if(y>=0.0)
-          return rad_to_deg(atan(y/x));
-        else
-          return rad_to_deg(TWO_PI + atan(y/x));    
-    } else if(x<0.0) {
-        return rad_to_deg(PI + atan(y/x));
-    } else {
-        if(y>0.0)
-          return 90.0;
-        else if(y<0.0)
-          return -90.0;
-        else
-        return 0.0 / 0.0;
-    }
-}
-
 /**
  * @brief Round x to the nearest integer
  * @param x the number to round
@@ -156,7 +129,7 @@ int myanalog(int sensor)
 {
     int a,b;
     a=analog(sensor);
-    sleep(0.001);
+    msleep(1L);
     b=analog(sensor);
     return (a+b)/2;
 }

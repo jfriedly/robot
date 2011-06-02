@@ -2,7 +2,7 @@
 
 void main() {
     for(;;) {
-        printf("WL:%d WR:%d BL:%d  FL:%d Elec:%d\n", digital(SWITCH_WALL_LEFT), digital(SWITCH_WALL_RIGHT), digital(SWITCH_BACK_LEFT), digital(SWITCH_FRONT_LEFT), analog(29));
+        printf("WL:%d WR:%d BL:%d  Elec:%d\n", digital(SWITCH_WALL_LEFT), digital(SWITCH_WALL_RIGHT), digital(SWITCH_CORN), analog(29));
         msleep(250L);
     }
 }

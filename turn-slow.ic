@@ -11,7 +11,6 @@
 #use "servo/exp_servo_calibrate.ic"
 #use "CdS.ic"
 #use "line.ic"
-#use "drive-straight.ic"
 #use "turn-slow.ic"
 #use "turn.ic"
 #use "step.ic"
@@ -103,4 +102,3 @@ void cw_degrees_slow(float deg) {
     
     ao();
 }
-
