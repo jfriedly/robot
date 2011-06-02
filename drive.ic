@@ -188,6 +188,7 @@ void drive_back_to_shiny(int go_to_front, long timeout) {
 /**
  * @brief Drive forwards to reach a metal strip.
  *
+ * @param go_to_back If true, continues until back optosensors see the strip
  * @param timeout The maximum number of miliseconds to run
  *
  * Drives straight forward using shaft encoders until a metal strip is found.
@@ -317,8 +318,14 @@ void pull_wagon(void) {
     forward_to_wall();
 }
 
+
+/**
+ * @brief Drives forward until the right switch gets depressed
+ *
+ * Angles to the right looking for a wall.
+ */
 void forward_to_wall() {
-    while(digital(SWITCH_WALL_LEFT) == 0) {
+    while(digital(SWITCH_WALL_RIGHT) == 0) {
         motor(MOTOR_LEFT, 100);
         motor(MOTOR_RIGHT,80);
     }

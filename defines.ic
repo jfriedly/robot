@@ -1,41 +1,104 @@
+/** 
+ * @file   defines.ic
+ * @brief  All of the #define's used anywhere
+ * @author Andrew Krieger and Joel Friedly
+ * @date   6/2/2011
+ *
+ */
+
+
+/// Left motor port
 #define MOTOR_LEFT  1
+
+/// Right motor port
 #define MOTOR_RIGHT 3
+
+/// Standard power to run the motors at.  Ended up using hard-coded numbers most places.
 #define MOT_PWR 100
 
+/// Front left optosensor port
 #define OPTO_FRONT_LEFT  20
+
+/// Front right optosensor port
 #define OPTO_FRONT_RIGHT 22
+
+/// Back left optosensor port
 #define OPTO_BACK_LEFT   3
+
+/// Back right optosensor port
 #define OPTO_BACK_RIGHT  2
 
+
+/// Left shaft encoder port
 #define SHAFT_LEFT 7
+
+/// Right shaft encoder port
 #define SHAFT_RIGHT 12
 
+
+
+/// Port for the side-mounted CdS cell
 #define CDS_SIDE 16
+
+/// Port for the front-mounted CdS cell
 #define CDS_FRONT 18
 
+
+
+/// Right bump switch port
 #define SWITCH_WALL_RIGHT 15
-#define SWITCH_CORN       8
+
+/// Left bump switch port
 #define SWITCH_WALL_LEFT  10
+
+/// Back right switch port.  This switch was not in the final design.
 #define SWITCH_BACK_RIGHT 27
 
+
+
+
+/// Corn arm servo port
 #define SERVO_CORN 0
+
+/// Hay arm servo port
 #define SERVO_HAY 3
 
+
+
+/// Empirically determined optosensor threshold.  Values <100 were considered on a strip and values >100 were considered off.
 #define OPTO_THRESHOLD 100
+
+/// Empirically determined CdS cell threshold.  Values <20 were considered red and values >20 were considered blue.
 #define CDS_THRESHOLD 20
+
+
+
 
 /// Wait for this many loops to confirm we're over something shiny (ie, aluminum strips)
 #define SHINY_TIME 1
 
-///Returned by @ref press_button if the start button is pressed
+
+
+
+/// Returned by @ref press_button if the start button is pressed
 #define BUTTON_START 0
-///Returned by @ref press_button if the stop button is pressed
+
+/// Returned by @ref press_button if the stop button is pressed
 #define BUTTON_STOP 1
 
+
+
+
+/// Number of times to attempt to hit the RED BUTTOM
 #define RED_BUTTON_TRIES 4
 
 
+
+
+/// Servo angle to have with the corn arm rotated down
 #define CORN_DOWN 160
+
+/// Servo angle to have with the corn arm rotated up
 #define CORN_UP 60
 
 #use "encoders.ic"

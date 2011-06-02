@@ -14,7 +14,6 @@
 #use "line.ic"
 //#use "corn.ic"
 
-#define RED_BUTTON_TRIES 4
 
 /**
  * @brief main entry point
